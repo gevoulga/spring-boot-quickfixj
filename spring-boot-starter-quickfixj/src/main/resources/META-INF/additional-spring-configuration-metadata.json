@@ -1,0 +1,14 @@
+{"properties": [
+  {
+    "name": "quickfixj.config",
+    "type": "java.lang.String",
+    "description": "The location of the configuration file to use to initialize QuickFixJ client."
+  },
+  {
+    "name": "quickfixj.jmx-enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to register the Jmx MBeans for the client.",
+    "defaultValue": false
+  }
+]}
+

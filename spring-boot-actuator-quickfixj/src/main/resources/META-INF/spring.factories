@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+ch.voulgarakis.spring.boot.actuator.quickfixj.config.QuickFixJEndpointAutoConfiguration
