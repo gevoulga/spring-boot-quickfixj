@@ -18,30 +18,37 @@ import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSet
 
 public class FixSessionUtils {
 
-    static ImmutablePair<SessionID, FixSession> getFixSession(SessionSettings sessionSettings, List<FixSession> sessions, SessionID sessionID) {
+    static ImmutablePair<SessionID, AbstractFixSession> getFixSession(SessionSettings sessionSettings,
+                                                                      List<AbstractFixSession> sessions, SessionID sessionID) {
+        AbstractFixSession fixSession;
         if (sessionSettings.size() == 1 && sessions.size() == 1) {
-            return ImmutablePair.of(sessionID, sessions.get(0));
+            fixSession = sessions.get(0);
         } else {
-            Map<String, FixSession> fixSessionMap = sessions.stream()
+            Map<String, AbstractFixSession> fixSessionMap = sessions.stream()
                     .map(fs -> Pair.of(extractFixSessionName(fs), fs))
                     .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
             String sessionName = extractSessionName(sessionSettings, sessionID);
-            FixSession fixSession = fixSessionMap.entrySet().stream()
+            fixSession = fixSessionMap.entrySet().stream()
                     .filter(e -> StringUtils.equalsIgnoreCase(sessionName, e.getKey()))
                     .map(Map.Entry::getValue)
                     .findFirst()
-                    .orElseThrow(() -> {
-                        List<String> sessionNames = sessions.stream()
-                                .map(FixSessionUtils::extractFixSessionName)
-                                .collect(Collectors.toList());
-                        return new QuickFixJConfigurationException(String.format("No bean found for SessionName.%s=[%s] in defined %s beans %s", SessionSettings.class.getSimpleName(), sessionName, FixSession.class.getSimpleName(), sessionNames));
-                    });
-            fixSession.setSessionId(sessionID);
-            return ImmutablePair.of(sessionID, fixSession);
+                    .orElseThrow(() -> new QuickFixJConfigurationException(
+                            String.format("No bean found for SessionName.%s=[%s] in defined %s beans %s",
+                                    SessionSettings.class.getSimpleName(), sessionName,
+                                    FixSession.class.getSimpleName(),
+                                    extractSessionNames(sessionSettings))));
         }
+        fixSession.setSessionId(sessionID);
+        return ImmutablePair.of(sessionID, fixSession);
     }
 
-    static String extractFixSessionName(FixSession fixSession) {
+    public static List<String> extractSessionNames(SessionSettings sessionSettings) {
+        return stream(sessionSettings)
+                .map(sessionID -> extractSessionName(sessionSettings, sessionID))
+                .collect(Collectors.toList());
+    }
+
+    static String extractFixSessionName(AbstractFixSession fixSession) {
         FixSessionMapping[] annotationsByType = fixSession.getClass().getAnnotationsByType(FixSessionMapping.class);
         if (annotationsByType.length > 1) {
             throw new QuickFixJConfigurationException("Only one @FixSessionMapping(...) is allowed.");
@@ -51,7 +58,14 @@ public class FixSessionUtils {
             if (NamedBean.class.isAssignableFrom(fixSession.getClass())) {
                 return ((NamedBean) fixSession).getBeanName();
             } else {
-                throw new QuickFixJConfigurationException("FixSession needs to be associated with a SessionId. Either use @FixSessionMapping on your FixSession, or make your FixSession implement a NamedBean. FixSession: " + fixSession);
+                throw new QuickFixJConfigurationException(
+                        fixSession.getClass().getSimpleName()
+                                + " needs to be associated with a SessionId. Either use @FixSessionMapping on your "
+                                + fixSession.getClass().getSimpleName()
+                                + ", or make your " + fixSession.getClass().getSimpleName()
+                                + " implement a NamedBean. "
+                                + fixSession.getClass().getSimpleName()
+                                + ": " + fixSession);
             }
         }
     }

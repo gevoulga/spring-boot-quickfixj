@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "management.endpoints.quickfixj.enable",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable the quickfixj endpoint"
+    }
+  ]
+}
+

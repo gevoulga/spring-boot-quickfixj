@@ -15,6 +15,14 @@ public class LogbackCapture extends AppenderBase<ILoggingEvent> {
         this.level = level;
     }
 
+    public static LogbackCapture logCapture() {
+        return new LogbackCapture(Level.ALL);
+    }
+
+    public static LogbackCapture logCapture(Level level) {
+        return new LogbackCapture(level);
+    }
+
     @Override
     protected void append(ILoggingEvent loggingEvent) {
         if (loggingEvent.getLevel().isGreaterOrEqual(level))
@@ -23,13 +31,5 @@ public class LogbackCapture extends AppenderBase<ILoggingEvent> {
 
     public List<ILoggingEvent> getLog() {
         return log;
-    }
-
-    public static LogbackCapture logCapture() {
-        return new LogbackCapture(Level.ALL);
-    }
-
-    public static LogbackCapture logCapture(Level level) {
-        return new LogbackCapture(level);
     }
 }

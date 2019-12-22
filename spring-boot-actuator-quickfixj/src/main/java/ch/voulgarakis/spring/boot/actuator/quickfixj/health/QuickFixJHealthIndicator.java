@@ -22,26 +22,6 @@ public class QuickFixJHealthIndicator implements HealthIndicator {
         this.connector = connector;
     }
 
-    @Override
-    public Health health() {
-        if (connector instanceof AbstractSocketInitiator) {
-            //All logged on -> UP
-            //Some logged on -> AMBER
-            //None logged on -> DOWN
-            AbstractSocketInitiator socketInitiator = (AbstractSocketInitiator) connector;
-            List<Health> healths = socketInitiator.getManagedSessions().stream().
-                    map(QuickFixJHealthIndicator::getInitiatorSessionHealth).collect(Collectors.toList());
-            return combine(healths);
-        } else if (connector instanceof AbstractSocketAcceptor) {
-            AbstractSocketAcceptor socketAcceptor = (AbstractSocketAcceptor) connector;
-            List<Health> healths = socketAcceptor.getManagedSessions().stream().
-                    map(QuickFixJHealthIndicator::getAcceptorSessionHealth).collect(Collectors.toList());
-            return combine(healths);
-        } else {
-            return Health.down().withDetail("connectorType", connector.getClass().getName()).build();
-        }
-    }
-
     private static Health getInitiatorSessionHealth(Session session) {
         boolean enabled = session.isEnabled();
         boolean loggedOn = session.isLoggedOn();
@@ -99,6 +79,26 @@ public class QuickFixJHealthIndicator implements HealthIndicator {
             } else {
                 return Health.down().withDetails(details).build();
             }
+        }
+    }
+
+    @Override
+    public Health health() {
+        if (connector instanceof AbstractSocketInitiator) {
+            //All logged on -> UP
+            //Some logged on -> AMBER
+            //None logged on -> DOWN
+            AbstractSocketInitiator socketInitiator = (AbstractSocketInitiator) connector;
+            List<Health> healths = socketInitiator.getManagedSessions().stream().
+                    map(QuickFixJHealthIndicator::getInitiatorSessionHealth).collect(Collectors.toList());
+            return combine(healths);
+        } else if (connector instanceof AbstractSocketAcceptor) {
+            AbstractSocketAcceptor socketAcceptor = (AbstractSocketAcceptor) connector;
+            List<Health> healths = socketAcceptor.getManagedSessions().stream().
+                    map(QuickFixJHealthIndicator::getAcceptorSessionHealth).collect(Collectors.toList());
+            return combine(healths);
+        } else {
+            return Health.down().withDetail("connectorType", connector.getClass().getName()).build();
         }
     }
 }

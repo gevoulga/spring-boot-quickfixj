@@ -1,6 +1,6 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSession;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.ConditionContext;
@@ -14,8 +14,8 @@ public class QuickFixJAutoConfigurationConditional implements ConfigurationCondi
 
     @Override
     public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata) {
-        Map<String, FixSession> beansOfType = conditionContext.getBeanFactory()
-                .getBeansOfType(FixSession.class);
+        Map<String, AbstractFixSession> beansOfType = conditionContext.getBeanFactory()
+                .getBeansOfType(AbstractFixSession.class);
 
         return false;
     }

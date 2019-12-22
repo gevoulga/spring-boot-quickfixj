@@ -1,8 +1,8 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import ch.voulgarakis.spring.boot.starter.quickfixj.exception.RejectException;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSession;
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
 import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,31 +30,6 @@ import static org.awaitility.Awaitility.await;
 public class QuickfixjApplicationTest {
 
     private static final AtomicBoolean received = new AtomicBoolean(false);
-
-    @Configuration
-    @EnableAutoConfiguration
-    @EnableQuickFixJ
-    public static class TestConfig {
-
-        @Bean
-        public FixSession fixSession() {
-            return new FixSession() {
-                @Override
-                protected void received(Message message) {
-                    received.set(true);
-                }
-
-                @Override
-                protected void error(RejectException message) {
-                }
-
-                @Override
-                protected void authenticate(Message message) throws RejectLogon {
-                }
-            };
-        }
-    }
-
     @Autowired
     private Application application;
 
@@ -63,5 +38,29 @@ public class QuickfixjApplicationTest {
         QuoteRequest quoteRequest = new QuoteRequest();
         application.fromApp(quoteRequest, new SessionID("FIX.4.3:TEST_CLIENT->FIX"));
         await().atMost(Duration.FIVE_SECONDS).until(received::get);
+    }
+
+    @Configuration
+    @EnableAutoConfiguration
+    @EnableQuickFixJ
+    public static class TestConfig {
+
+        @Bean
+        public AbstractFixSession fixSession() {
+            return new AbstractFixSession() {
+                @Override
+                protected void received(Message message) {
+                    received.set(true);
+                }
+
+                @Override
+                protected void error(SessionException message) {
+                }
+
+                @Override
+                protected void authenticate(Message message) {
+                }
+            };
+        }
     }
 }

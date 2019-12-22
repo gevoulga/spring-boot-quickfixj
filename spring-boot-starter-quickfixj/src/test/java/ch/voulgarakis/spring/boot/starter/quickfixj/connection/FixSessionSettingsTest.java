@@ -17,14 +17,14 @@ public class FixSessionSettingsTest {
 
     @Test
     public void shouldLoadDefaultFromSystemProperty() {
-        SessionSettings settings = loadSettings("classpath:quickfixj.cfg");
+        SessionSettings settings = loadSettings("classpath:quickfixj.cfg", null, null);
         assertThat(settings).isNotNull();
     }
 
     @Test
     public void shouldThrowSettingsNotFoundExceptionIfNoneFound() {
         thrown.expect(QuickFixJSettingsNotFoundException.class);
-        System.setProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG, "crapI.cfg");
-        loadSettings(null);
+        System.setProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG, "crapI.cfg")
+        loadSettings(null, null, null);
     }
 }

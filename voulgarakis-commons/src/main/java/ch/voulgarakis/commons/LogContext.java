@@ -23,6 +23,14 @@ public class LogContext implements AutoCloseable {
                 }).collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
+    public static LogContextBuilder builder() {
+        return new LogContextBuilder();
+    }
+
+    public static LogContext fromMdcContext(Context context) {
+        return new LogContext(context.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    }
+
     @Override
     public void close() {
         //Restore MDC context
@@ -35,14 +43,6 @@ public class LogContext implements AutoCloseable {
                     else
                         MDC.put(key, oldValue);
                 });
-    }
-
-    public static LogContextBuilder builder() {
-        return new LogContextBuilder();
-    }
-
-    public static LogContext fromMdcContext(Context context) {
-        return new LogContext(context.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     public static class LogContextBuilder {

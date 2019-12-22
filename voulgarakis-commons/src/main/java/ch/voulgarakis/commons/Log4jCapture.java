@@ -15,6 +15,14 @@ public class Log4jCapture extends AppenderSkeleton {
         this.level = level;
     }
 
+    public static Log4jCapture logCapture() {
+        return new Log4jCapture(Level.ALL);
+    }
+
+    public static Log4jCapture logCapture(Level level) {
+        return new Log4jCapture(level);
+    }
+
     @Override
     public boolean requiresLayout() {
         return false;
@@ -32,13 +40,5 @@ public class Log4jCapture extends AppenderSkeleton {
 
     public List<LoggingEvent> getLog() {
         return log;
-    }
-
-    public static Log4jCapture logCapture() {
-        return new Log4jCapture(Level.ALL);
-    }
-
-    public static Log4jCapture logCapture(Level level) {
-        return new Log4jCapture(level);
     }
 }

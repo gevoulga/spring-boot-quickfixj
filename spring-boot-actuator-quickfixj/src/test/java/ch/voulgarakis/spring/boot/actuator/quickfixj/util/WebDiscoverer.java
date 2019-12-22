@@ -1,10 +1,5 @@
 package ch.voulgarakis.spring.boot.actuator.quickfixj.util;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.boot.actuate.endpoint.EndpointId;
 import org.springframework.boot.actuate.endpoint.invoke.convert.ConversionServiceParameterValueMapper;
 import org.springframework.boot.actuate.endpoint.invoker.cache.CachingOperationInvokerAdvisor;
@@ -14,21 +9,26 @@ import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpointDisco
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.support.DefaultConversionService;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class WebDiscoverer {
 
     public static Map<EndpointId, ExposableWebEndpoint> findWebEndpoints(ApplicationContext context) {
         ConversionServiceParameterValueMapper parameterMapper = new ConversionServiceParameterValueMapper(
-            DefaultConversionService.getSharedInstance());
+                DefaultConversionService.getSharedInstance());
         EndpointMediaTypes mediaTypes = new EndpointMediaTypes(
-            Collections.singletonList("application/json"),
-            Collections.singletonList("application/json"));
+                Collections.singletonList("application/json"),
+                Collections.singletonList("application/json"));
 
         WebEndpointDiscoverer discoverer = new WebEndpointDiscoverer(context,
-            parameterMapper,
-            mediaTypes,
-            Collections.singletonList(EndpointId::toString),
-            Collections.singleton(new CachingOperationInvokerAdvisor((id) -> null)),
-            Collections.emptyList());
+                parameterMapper,
+                mediaTypes,
+                Collections.singletonList(EndpointId::toString),
+                Collections.singleton(new CachingOperationInvokerAdvisor((id) -> null)),
+                Collections.emptyList());
 
         return mapEndpoints(discoverer.getEndpoints());
     }
