@@ -1,0 +1,12 @@
+= quickfixj-spring-boot
+
+Integration of QuickfixJ with Spring-Boot-Starter.
+
+Simple integration of FIX message exchange protocol.
+
+
+=== License and Acknowledgement
+
+The QuickFixJ Spring Boot Starter is released under version 2.0 of the Apache License.
+
+This code includes software developed by quickfixengine.org.

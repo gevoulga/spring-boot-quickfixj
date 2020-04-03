@@ -17,16 +17,21 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 
-@Configuration
+//@Configuration
 @ConfigurationProperties(prefix = QuickFixJBootProperties.PROPERTY_PREFIX)
 public class QuickFixJBootProperties {
 
     static final String PROPERTY_PREFIX = "quickfixj";
 
+    /**
+     * Whether to register the Jmx MBeans.
+     */
     private boolean jmxEnabled = false;
+    /**
+     * The location of the configuration file to use to initialize QuickFixJ.
+     */
     private String config;
 
     public boolean isJmxEnabled() {
