@@ -32,16 +32,16 @@
     </prerequisites>
 
     <groupId>ch.voulgarakis</groupId>
-    <artifactId>spring-boot-quickfixj</artifactId>
+    <artifactId>quickfixj-spring-boot</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
     <description>QuickfixJ integration in Spring-Boot</description>
 
     <modules>
         <module>voulgarakis-commons</module>
-        <module>spring-boot-starter-quickfixj</module>
-        <module>spring-boot-actuator-quickfixj</module>
-        <module>spring-boot-starter-quickfixj-flux</module>
+        <module>quickfixj-spring-boot-starter</module>
+        <module>quickfixj-spring-boot-actuator</module>
+        <module>quickfixj-spring-boot-starter-flux</module>
     </modules>
 
     <properties>
@@ -228,12 +228,12 @@
             </dependency>
             <dependency>
                 <groupId>ch.voulgarakis</groupId>
-                <artifactId>spring-boot-starter-quickfixj</artifactId>
+                <artifactId>quickfixj-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.voulgarakis</groupId>
-                <artifactId>spring-boot-starter-quickfixj</artifactId>
+                <artifactId>quickfixj-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
             </dependency>
