@@ -1,11 +1,182 @@
-= quickfixj-spring-boot
+= Quickfixj Spring Boot
 
 Integration of QuickfixJ with Spring-Boot-Starter.
 
-Simple integration of FIX message exchange protocol.
+== Introduction
 
+FIX message exchange protocol is a mainstay of financial institute communication, for real-time electronic exchange of securities. +
+QuickFIX/J is an implementation engine of FIX protocol.
 
-=== License and Acknowledgement
+https://github.com/gevoulga/spring-boot-quickfixj/[Quickfixj Spring Boot] simplifies the process of spinning-up a FIX engine, by providing easy, spring-boot-style configuration of-the-shelf, with minimal FIX-layer config, enabling developers to focus on business logic.
+
+== Artifacts
+
+Quickfixj Spring Boot supports both imperative and reactive programming styles, and a custom implementation of spring-boot-actuator for state and health checks:
+
+* Reactive:
+
+[source,xml]
+----
+<dependency>
+    <groupId>ch.voulgarakis</groupId>
+    <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
+</dependency>
+----
+
+* Imperative:
+
+[source,xml]
+----
+<dependency>
+    <groupId>ch.voulgarakis</groupId>
+    <artifactId>quickfixj-spring-boot-starter</artifactId>
+</dependency>
+----
+
+* Actuator:
+
+[source,xml]
+----
+<dependency>
+    <groupId>ch.voulgarakis</groupId>
+    <artifactId>quickfixj-spring-boot-actuator</artifactId>
+</dependency>
+----
+
+== Setup
+
+=== Quickfixj config file
+
+As per the requirements from quickfixj, the FIX sessions need to be configured in a https://www.quickfixj.org/usermanual/2.1.0/usage/configuration.html[configuration file]. +
+This can be done in `quickfixj.cfg` and will be picked up by default.
+
+A different filename can also be specified, by setting in the `application.properties` or `application.yml`:
+
+[source,yml]
+----
+quickfixj:
+  config: classpath:quickfixj-qa.cfg
+----
+
+[source,properties]
+----
+[default]
+ConnectionType=acceptor
+SocketAcceptPort=0
+StartTime=00:00:00
+EndTime=00:00:00
+HeartBtInt=30
+ReconnectInterval=5
+
+[SESSION]
+SessionName=SESSION1 #associate session with bean named SESSION1
+BeginString=FIX.4.3
+SenderCompID=TEST_CLIENT
+TargetCompID=FIX
+DataDictionary=${quickfixj.dataDictionary} # you can specify placeholder!
+Username=cool #for authentication based on configuration
+Password=stuff
+----
+
+=== Enable Quickfixj
+
+Use the `EnableQuickFixJ` to instruct spring-boot to spin-up a FIX engine based on the configuration.
+
+[source,java]
+----
+@EnableQuickFixJ
+@SpringBootApplication
+public class ApplicationContext {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ApplicationContext.class, args);
+    }
+}
+----
+
+=== Quickfixj Spring Boot Actuator
+
+Import `quickfixj-spring-boot-actuator` into your project.
+
+=== Session Beans
+
+The most important configuration, and the one which is expected to be used in the business logic is the **definition of the Session beans**.
+
+These expose to user functions that allow sending and receiving FIX messages. If more that one FIX sessions are defined in `quickfixj.cfg`, these FIX session beans can either be annotated with `@FixSessionMapping` or implement `NamedBean`. The name of the beans needs to be the same with `SessionName` property in `quickfixj.cfg`.
+
+==== Reactive Session
+
+An example of a Reactive Fix Session
+[source,java]
+----
+@Component
+@FixSessionMapping("SESSION1") //Associate this bean with SESSION1 specified in quickfixj.cfg
+public class TestFixSession extends ReactiveAbstractFixSession {
+
+    @Autowired
+    private SessionSettings sessionSettings;
+
+    @Override
+    protected void authenticate(Message message) throws RejectLogon {
+        //Authenticate the session by extracting the:
+        //Username & Password properties specified in quickfixj.cfg
+        FixSessionSettings.authenticate(sessionSettings, getSessionId(), message);
+    }
+}
+----
+
+And then this FIX session can be used:
+[source,java]
+----
+@Service
+public class QuotingService {
+
+    @Autowired
+    private TestFixSession testFixSession;
+
+    public Mono<Message> getRepos(QuoteRequest quoteRequest) {
+
+        //Create logging context for MDC. Then when using a logging framework, you can use %id% in the log messages.
+        try (LoggingContext loggingContext = LoggingUtils.loggingContext(Context.of("id", "thisIsMyId"))) {
+
+            //This selector will associate FIX response messages received by the session, with this quote request.
+            RefIdSelector refIdSelector = new RefIdSelector(quoteRequest);
+
+            //Send the FIX quote request message
+            return testFixSession.send(quoteRequest)
+                    //Subscribe to the responses relevant to this quote request
+                    .thenMany(testFixSession.subscribe(refIdSelector))
+
+                    //Get the first message
+                    .next()
+                    //Timeout if no response received after 2 seconds
+                    .timeout(Duration.ofSeconds(2))
+
+                    //Optional: Set MDC thread-local values, to be used when logging messages from the reactive stream
+                    //This way the logging context set in the try-catch is not lost
+                    //(reactive notification happen in different thread, so thread local varaibles -like MDC- are lost)
+                    .subscriberContext(LoggingUtils.withLoggingContext(loggingContext));
+        }
+    }
+}
+----
+
+==== Configuration Endpoint
+
+To enable quickfixj management endpoint:
+
+[source,properties]
+----
+management.endpoint.quickfixjserver.enabled=true
+----
+
+The configuration endpoint is available under `/actuator/quickfixj`.
+
+==== Health Endpoint
+
+The health check endpoint is available under `/actuator/health/quickfixj`.
+
+== License and Acknowledgement
 
 The QuickFixJ Spring Boot Starter is released under version 2.0 of the Apache License.
 
