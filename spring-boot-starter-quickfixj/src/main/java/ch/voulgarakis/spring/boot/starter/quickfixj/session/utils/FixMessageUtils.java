@@ -42,6 +42,7 @@ public class FixMessageUtils {
                 return safeGetField(message, new MDReqID());
             case MsgType.NEW_ORDER_MULTILEG:
             case MsgType.NEW_ORDER_CROSS:
+            case MsgType.ORDER_SINGLE:
                 return safeGetField(message, new ClOrdID());
             case MsgType.TRADE_CAPTURE_REPORT:
             case MsgType.TRADE_CAPTURE_REPORT_REQUEST:
