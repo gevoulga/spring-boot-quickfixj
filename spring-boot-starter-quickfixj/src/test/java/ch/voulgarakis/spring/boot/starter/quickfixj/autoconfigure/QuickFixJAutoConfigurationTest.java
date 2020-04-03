@@ -17,7 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = QuickFixJAutoConfigurationTestConfig.class,
         properties = {
                 "quickfixj.config=classpath:quickfixj.cfg",
-                "quickfixj.jmx-enabled=true"
+                "quickfixj.jmx-enabled=true",
+                "quickfixj.startup.timeout="
         })
 @DirtiesContext //Stop port already bound issues from other tests
 public class QuickFixJAutoConfigurationTest {

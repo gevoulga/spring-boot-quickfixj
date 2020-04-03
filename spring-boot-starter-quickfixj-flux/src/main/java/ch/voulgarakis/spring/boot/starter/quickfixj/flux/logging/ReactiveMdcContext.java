@@ -1,5 +1,6 @@
-package ch.voulgarakis.spring.boot.starter.quickfixj.session.logging;
+package ch.voulgarakis.spring.boot.starter.quickfixj.flux.logging;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingContext;
 import org.reactivestreams.Subscription;
 import org.springframework.lang.NonNull;
 import reactor.core.CoreSubscriber;

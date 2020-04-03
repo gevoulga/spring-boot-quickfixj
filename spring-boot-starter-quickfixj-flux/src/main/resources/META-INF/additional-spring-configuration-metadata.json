@@ -1,0 +1,11 @@
+{
+  "properties": [
+    {
+      "name": "logging.rxMDC",
+      "type": "java.lang.Boolean",
+      "description": "Transfer the thread-local MDC-context (log4j) of the reactive subscriber, to the thread-local MDC-context of the reactive of the publisher.",
+      "defaultValue": false
+    }
+  ]
+}
+

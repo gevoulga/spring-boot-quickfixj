@@ -1,11 +1,10 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.*;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -35,9 +34,9 @@ public class StaticExtractor {
                 }
             };
 
-    public static List<Tuple2<String, Object>> extract(Object obj, Class<?> fieldClass) {
+    public static List<Pair<String, Object>> extract(Object obj, Class<?> fieldClass) {
         Field[] declaredFields = obj.getClass().getDeclaredFields();
-        List<Tuple2<String, Object>> staticRegistry = new ArrayList<>();
+        List<Pair<String, Object>> staticRegistry = new ArrayList<>();
         for (Field field : declaredFields) {
             if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
                     && isAssignableTo(field.getType(), fieldClass)) {
@@ -46,7 +45,7 @@ public class StaticExtractor {
                         && !StringUtils.equalsIgnoreCase(SERIAL_UUID_VERSION, name)) {
                     try {
                         Object value = field.get(obj);
-                        staticRegistry.add(Tuples.of(name, value));
+                        staticRegistry.add(Pair.of(name, value));
                     } catch (IllegalAccessException e) {
                         LOG.error("Failed to extract static value from field {}", field, e);
                     }
@@ -77,12 +76,12 @@ public class StaticExtractor {
     }
 
     private static <T> String toText(quickfix.Field<T> field, T value, Class<?> type) {
-        List<Tuple2<String, Object>> extract = extract(field, type);
-        List<Tuple2<String, Object>> collect = extract.stream()
-                .filter(tuple -> Objects.equals(value, tuple.getT2()))
+        List<Pair<String, Object>> extract = extract(field, type);
+        List<Pair<String, Object>> collect = extract.stream()
+                .filter(tuple -> Objects.equals(value, tuple.getRight()))
                 .collect(Collectors.toList());
         if (collect.size() == 1) {
-            return collect.get(0).getT1();
+            return collect.get(0).getLeft();
         } else if (collect.isEmpty()) {
             throw new IllegalStateException("No values found");
         } else {
@@ -91,12 +90,12 @@ public class StaticExtractor {
     }
 
     private static <T> T toValue(quickfix.Field field, String name, Class<?> type) {
-        List<Tuple2<String, Object>> extract = extract(field, type);
-        List<Tuple2<String, Object>> collect = extract.stream()
-                .filter(tuple -> Objects.equals(name, tuple.getT1()))
+        List<Pair<String, Object>> extract = extract(field, type);
+        List<Pair<String, Object>> collect = extract.stream()
+                .filter(tuple -> Objects.equals(name, tuple.getLeft()))
                 .collect(Collectors.toList());
         if (collect.size() == 1) {
-            return (T) collect.get(0).getT2();
+            return (T) collect.get(0).getRight();
         } else {
             throw new IllegalStateException("Found multiple values: " + collect);
         }

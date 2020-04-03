@@ -16,12 +16,6 @@
       "type": "java.time.Duration",
       "description": "Timeout to wait during spring-context startup, until the sessions have been created (for acceptor connection), or connected (for initiator connection).\nIf session has not been established, spring startup fails.",
       "defaultValue": null
-    },
-    {
-      "name": "logging.rxMDC",
-      "type": "java.lang.Boolean",
-      "description": "Transfer the thread-local MDC-context (log4j) of the reactive subscriber, to the thread-local MDC-context of the reactive of the publisher.",
-      "defaultValue": false
     }
   ]
 }

@@ -1,4 +1,4 @@
-package ch.voulgarakis.spring.boot.starter.quickfixj.session.logging;
+package ch.voulgarakis.spring.boot.starter.quickfixj.flux.logging;
 
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Operators;

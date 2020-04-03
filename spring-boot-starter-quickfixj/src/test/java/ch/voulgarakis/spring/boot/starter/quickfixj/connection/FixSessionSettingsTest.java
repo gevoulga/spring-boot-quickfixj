@@ -24,7 +24,7 @@ public class FixSessionSettingsTest {
     @Test
     public void shouldThrowSettingsNotFoundExceptionIfNoneFound() {
         thrown.expect(QuickFixJSettingsNotFoundException.class);
-        System.setProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG, "crapI.cfg")
+        System.setProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG, "crapI.cfg");
         loadSettings(null, null, null);
     }
 }

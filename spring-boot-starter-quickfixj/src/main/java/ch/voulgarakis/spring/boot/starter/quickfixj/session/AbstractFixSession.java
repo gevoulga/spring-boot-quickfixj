@@ -1,14 +1,16 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionInterface;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
 import quickfix.Message;
 import quickfix.RejectLogon;
+import quickfix.Session;
 import quickfix.SessionID;
 
 import java.util.Objects;
 
-public abstract class AbstractFixSession {
+public abstract class AbstractFixSession implements FixSessionInterface {
 
     private SessionID sessionId;
 
@@ -52,11 +54,13 @@ public abstract class AbstractFixSession {
      */
     protected abstract void authenticate(Message message) throws RejectLogon;
 
+
+    @Override
     public SessionID getSessionId() {
         if (Objects.nonNull(sessionId)) {
             return sessionId;
         } else {
-            throw new QuickFixJConfigurationException("SessionId is null.");
+            throw new QuickFixJConfigurationException("SessionId is not set.");
         }
     }
 
@@ -68,6 +72,19 @@ public abstract class AbstractFixSession {
             this.sessionId = sessionID;
         } else {
             throw new QuickFixJConfigurationException("Not allowed to set SessionId more than once.");
+        }
+    }
+
+    //--------------------------------------------------
+    //------------------SESSION STATUS------------------
+    //--------------------------------------------------
+    @Override
+    public Session getSession() {
+        Session session = Session.lookupSession(getSessionId());
+        if (Objects.nonNull(session)) {
+            return session;
+        } else {
+            throw new QuickFixJConfigurationException("Session does not exist.");
         }
     }
 }

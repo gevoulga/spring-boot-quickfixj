@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.6.RELEASE</version>
+        <version>2.2.3.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -25,6 +25,7 @@
         <module>voulgarakis-commons</module>
         <module>spring-boot-starter-quickfixj</module>
         <module>spring-boot-actuator-quickfixj</module>
+        <module>spring-boot-starter-quickfixj-flux</module>
     </modules>
 
     <properties>
@@ -39,7 +40,11 @@
         <!--//////////////-->
         <quickfixj.version>2.1.1</quickfixj.version>
         <awaitility.version>3.1.6</awaitility.version>
-        <flux.version>3.1.5.RELEASE</flux.version>
+
+        <!--//////////////-->
+        <!-- Test Dependencies -->
+        <!--//////////////-->
+        <testng.version>6.10</testng.version>
     </properties>
 
     <profiles>
@@ -192,22 +197,30 @@
                 <version>${awaitility.version}</version>
             </dependency>
 
+            <!-- Test Dependencies -->
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+            </dependency>
+
             <!--Modules-->
-            <!--<dependency>-->
-                <!--<groupId>ch.voulgarakis</groupId>-->
-                <!--<artifactId>voulgarakis-commons</artifactId>-->
-                <!--<version>${revision}</version>-->
-            <!--</dependency>-->
-            <!--<dependency>-->
-                <!--<groupId>ch.voulgarakis</groupId>-->
-                <!--<artifactId>spring-boot-starter-quickfixj</artifactId>-->
-                <!--<version>${revision}</version>-->
-            <!--</dependency>-->
-            <!--<dependency>-->
-                <!--<groupId>ch.voulgarakis</groupId>-->
-                <!--<artifactId>spring-boot-actuator-quickfixj</artifactId>-->
-                <!--<version>${revision}</version>-->
-            <!--</dependency>-->
+            <dependency>
+                <groupId>ch.voulgarakis</groupId>
+                <artifactId>voulgarakis-commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.voulgarakis</groupId>
+                <artifactId>spring-boot-starter-quickfixj</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.voulgarakis</groupId>
+                <artifactId>spring-boot-starter-quickfixj</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -237,17 +250,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Build the test-jars of all dpne modules -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>attach-tests</id>
                         <goals>
+                            <goal>test-jar</goal>
+                            <goal>help</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Attach source code -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
                             <goal>test-jar</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+            <!-- Build the javadoc -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>

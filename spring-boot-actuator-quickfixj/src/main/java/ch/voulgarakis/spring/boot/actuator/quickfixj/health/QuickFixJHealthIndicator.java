@@ -32,11 +32,15 @@ public class QuickFixJHealthIndicator implements HealthIndicator {
             if (loggedOn) {
                 return Health.up().withDetail(sessionId, "Logged On").build();
             } else if (wasKickedOff) {
-                return Health.down().withDetail(sessionId, "FIX Server Logged Out").build();
+                return Health.down().withDetail(sessionId, "Logged Out / Kicked off").build();
             } else if (loggedOut) {
                 return Health.outOfService().withDetail(sessionId, "Logged Out").build();
+            } else if (session.isLogonTimedOut()) {
+                return Health.down().withDetail(sessionId, "Logged On timed out").build();
+            } else if (session.isLogonSent() && !session.isLogonReceived()) {
+                return Health.down().withDetail(sessionId, "Waiting for LogOn response").build();
             } else {
-                return Health.unknown().withDetail(sessionId, "Status Unknown for Session: " + session).build();
+                return Health.down().withDetail(sessionId, "FIX connectino never established").build();
             }
         } else {
             return Health.outOfService().withDetail(sessionId, "Disabled").build();

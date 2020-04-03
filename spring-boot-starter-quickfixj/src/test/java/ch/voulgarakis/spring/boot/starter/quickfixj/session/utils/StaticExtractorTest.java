@@ -1,9 +1,8 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session.utils;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import quickfix.field.QuoteType;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +14,13 @@ public class StaticExtractorTest {
 
     @Test
     public void testExtractor() {
-        List<Tuple2<String, Object>> expected = new ArrayList<>();
-        expected.add(Tuples.of("INDICATIVE", 0));
-        expected.add(Tuples.of("TRADEABLE", 1));
-        expected.add(Tuples.of("RESTRICTED_TRADEABLE", 2));
-        expected.add(Tuples.of("COUNTER", 3));
+        List<Pair<String, Object>> expected = new ArrayList<>();
+        expected.add(Pair.of("INDICATIVE", 0));
+        expected.add(Pair.of("TRADEABLE", 1));
+        expected.add(Pair.of("RESTRICTED_TRADEABLE", 2));
+        expected.add(Pair.of("COUNTER", 3));
 
-        List<Tuple2<String, Object>> actual = extract(new QuoteType(), Integer.class);
+        List<Pair<String, Object>> actual = extract(new QuoteType(), Integer.class);
         assertEquals(expected, actual);
     }
 

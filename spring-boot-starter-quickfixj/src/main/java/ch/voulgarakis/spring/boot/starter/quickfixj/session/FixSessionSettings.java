@@ -18,6 +18,8 @@ import quickfix.field.Username;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -112,19 +114,28 @@ public class FixSessionSettings extends ResourceCondition {
             if (sessionSettings.isSetting(sessionID, DATA_DICTIONARY)) {
                 try {
                     String dataDictionaryLocation = sessionSettings.getString(sessionID, DATA_DICTIONARY);
-                    String path = resourceLoader.getResource(dataDictionaryLocation)
-                            .getFile().getAbsolutePath();
+                    String path = getPath(dataDictionaryLocation, resourceLoader);
                     sessionSettings.setString(sessionID, DATA_DICTIONARY, path);
-                } catch (ConfigError | IOException e) {
+                } catch (ConfigError e) {
                     throw new QuickFixJConfigurationException("Failed to set DataDictionary location", e);
                 }
             }
         });
     }
 
-    public static Connector createConnector(Application application, MessageStoreFactory messageStoreFactory, SessionSettings sessionSettings, LogFactory logFactory, MessageFactory messageFactory)
-            throws ConfigError, FieldConvertError {
-        FixConnectionType fixConnectionType = FixConnectionType.of(sessionSettings);
+    private static String getPath(String dataDictionaryLocation, ResourceLoader resourceLoader) {
+        Resource resource = resourceLoader.getResource(dataDictionaryLocation);
+        try {
+            Method getPath = resource.getClass().getMethod("getPath");
+            return (String) getPath.invoke(resource);
+        } catch (NoSuchMethodException e) {
+            return dataDictionaryLocation;
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new QuickFixJConfigurationException("Failed to set DataDictionary location " + resource, e);
+        }
+    }
+
+    public static Connector createConnector(Application application, FixConnectionType fixConnectionType, MessageStoreFactory messageStoreFactory, SessionSettings sessionSettings, LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
         return fixConnectionType
                 .createConnector(application, messageStoreFactory, sessionSettings, logFactory, messageFactory);
     }

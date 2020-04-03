@@ -4,7 +4,7 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.connection.FixConnection;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.*;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.ReactiveMdcContextConfiguration;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingId;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.StartupLatch;
 import org.quickfixj.jmx.JmxExporter;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,10 +55,17 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Connector connector(Application application, SessionSettings sessionSettings, MessageStoreFactory messageStoreFactory, MessageFactory messageFactory, Optional<LogFactory> logFactory) {
+    public FixConnectionType fixConnectionType(SessionSettings sessionSettings) throws FieldConvertError, ConfigError {
+        return FixConnectionType.of(sessionSettings);
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean
+    public Connector connector(Application application, FixConnectionType fixConnectionType, SessionSettings sessionSettings, MessageStoreFactory messageStoreFactory, MessageFactory messageFactory, Optional<LogFactory> logFactory) {
         try {
-            return FixSessionSettings.createConnector(application, messageStoreFactory, sessionSettings, logFactory.orElse(null), messageFactory);
-        } catch (ConfigError | FieldConvertError configError) {
+            return FixSessionSettings.createConnector(application, fixConnectionType, messageStoreFactory, sessionSettings, logFactory.orElse(null), messageFactory);
+        } catch (ConfigError configError) {
             throw new QuickFixJConfigurationException(configError.getMessage(), configError);
         }
     }
@@ -77,13 +84,19 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Application application(SessionSettings sessionSettings, List<AbstractFixSession> sessions, StartupLatch startupLatch) {
+    public LoggingId loggingId() {
+        return new LoggingId();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public Application application(SessionSettings sessionSettings, FixConnectionType fixConnectionType, List<AbstractFixSession> sessions, StartupLatch startupLatch, LoggingId loggingId) {
         if (sessionSettings.size() != 0 && (sessions == null || sessions.isEmpty())) {
             throw new QuickFixJConfigurationException(format(
                     "You need to define %s beans that will handle FIX message exchange for the sessions: %s",
                     FixSession.class.getSimpleName(), extractSessionNames(sessionSettings)));
         }
-        return new FixSessionManager(sessionSettings, sessions, startupLatch);
+        return new FixSessionManager(sessionSettings, fixConnectionType, sessions, startupLatch, loggingId);
     }
 
     @Bean
@@ -98,12 +111,5 @@ public class QuickFixJAutoConfiguration {
         } catch (JMException e) {
             throw new QuickFixJConfigurationException(e.getMessage(), e);
         }
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(name = "logging.rxMDC", havingValue = "true")
-    public ReactiveMdcContextConfiguration reactiveMdcContextConfiguration() {
-        return new ReactiveMdcContextConfiguration();
     }
 }

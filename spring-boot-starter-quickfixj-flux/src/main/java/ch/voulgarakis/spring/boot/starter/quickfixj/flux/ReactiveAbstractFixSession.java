@@ -1,8 +1,10 @@
-package ch.voulgarakis.spring.boot.starter.quickfixj.session;
+package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Message;
@@ -14,6 +16,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,9 +26,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMessageUtils.isMessageOfType;
-import static reactor.util.function.Tuples.of;
 
 public abstract class ReactiveAbstractFixSession extends AbstractFixSession implements ReactiveFixSession {
 
@@ -101,7 +101,7 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
         );
 
         //Log a warning if nobody was notified
-        if (Objects.nonNull(message) && notifiedSinks.isEmpty() && !isMessageOfType(message, MsgType.LOGOUT)) {
+        if (Objects.nonNull(message) && notifiedSinks.isEmpty() && !FixMessageUtils.isMessageOfType(message, MsgType.LOGOUT)) {
             LOG.warn("Message received could not be associated with any Request. Message: {}", message);
         }
     }
@@ -123,7 +123,7 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
         EmitterProcessor<Message> processor = EmitterProcessor.create();
         //WorkQueueProcessor<Message> processor = WorkQueueProcessor.create();
         FluxSink<Message> sink = processor.sink(FluxSink.OverflowStrategy.LATEST);
-        sinks.add(of(messageSelector, sink));
+        sinks.add(Tuples.of(messageSelector, sink));
 
         //Notify new subscriber if session has been dropped
         SessionDroppedException sessionDroppedException = loggedOut.get();

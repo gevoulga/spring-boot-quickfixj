@@ -3,10 +3,10 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 import quickfix.*;
 
 public enum FixConnectionType {
-    ACCEPTOR(true, false),
+    ACCEPTOR(false, true),
     ACCEPTOR_THREADED(true, true),
     INITIATOR(false, false),
-    INITIATOR_THREADED(false, true);
+    INITIATOR_THREADED(true, false);
 
     private static final String CONCURRENT = "Concurrent";
 

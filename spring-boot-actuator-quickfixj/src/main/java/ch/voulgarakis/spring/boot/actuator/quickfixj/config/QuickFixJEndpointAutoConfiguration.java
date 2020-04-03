@@ -24,14 +24,14 @@ public class QuickFixJEndpointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnEnabledEndpoint(endpoint = QuickFixJEndpoint.class)
-    public QuickFixJEndpoint quickFixJEndpoint(SessionSettings sessionSettings) {
+    public QuickFixJEndpoint quickfixjEndpoint(SessionSettings sessionSettings) {
         return new QuickFixJEndpoint(sessionSettings);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnEnabledHealthIndicator("quickFixJ")
-    public QuickFixJHealthIndicator quickFixJHealthIndicator(Connector connector) {
+    @ConditionalOnEnabledHealthIndicator("quickfixj")
+    public QuickFixJHealthIndicator quickfixjHealthIndicator(Connector connector) {
         return new QuickFixJHealthIndicator(connector);
     }
 }

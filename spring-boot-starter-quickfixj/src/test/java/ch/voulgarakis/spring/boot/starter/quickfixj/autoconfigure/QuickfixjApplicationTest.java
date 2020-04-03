@@ -24,7 +24,8 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest(
         properties = {
                 "quickfixj.config=classpath:quickfixj.cfg",
-                "quickfixj.jmx-enabled=false"
+                "quickfixj.jmx-enabled=false",
+                "quickfixj.startup.timeout="
         })
 @DirtiesContext //Stop port already bound issues from other tests
 public class QuickfixjApplicationTest {

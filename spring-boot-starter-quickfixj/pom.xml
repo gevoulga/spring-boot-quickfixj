@@ -32,13 +32,6 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
         </dependency>
 
-        <!-- Flux -->
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- QuickFIX/J dependencies -->
         <dependency>
             <groupId>org.quickfixj</groupId>

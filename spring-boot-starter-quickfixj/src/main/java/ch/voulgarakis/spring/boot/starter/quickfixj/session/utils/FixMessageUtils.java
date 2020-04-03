@@ -4,8 +4,6 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJException
 import org.springframework.lang.Nullable;
 import quickfix.*;
 import quickfix.field.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -55,9 +53,9 @@ public class FixMessageUtils {
         }
     }
 
-    public static Optional<String> safeGetRefIdForResponse(Message message) {
+    public static List<String> safeGetRefIdForResponse(Message message) {
         if (Objects.isNull(message)) {
-            return Optional.empty();
+            return of();
         }
 
         String messageType = safeGetField(message.getHeader(), new MsgType())
@@ -66,25 +64,30 @@ public class FixMessageUtils {
         switch (messageType) {
             case MsgType.QUOTE:
             case MsgType.QUOTE_REQUEST_REJECT:
-                return safeGetField(message, new QuoteReqID());
+                return of(safeGetField(message, new QuoteReqID()));
             case MsgType.QUOTE_RESPONSE:
-                return safeGetField(message, new QuoteRespID());
+                return of(safeGetField(message, new QuoteRespID()));
             case MsgType.MARKET_DATA_INCREMENTAL_REFRESH:
             case MsgType.MARKET_DATA_SNAPSHOT_FULL_REFRESH:
             case MsgType.MARKET_DATA_REQUEST:
             case MsgType.MARKET_DATA_REQUEST_REJECT:
-                return safeGetField(message, new MDReqID());
+                return of(safeGetField(message, new MDReqID()));
             case MsgType.EXECUTION_ACKNOWLEDGEMENT:
             case MsgType.EXECUTION_REPORT:
-                Optional<String> execRefId = safeGetField(message, new ExecRefID());
-                return execRefId.isPresent() ? execRefId : safeGetField(message, new ClOrdID());
+                return of(
+                        safeGetField(message, new ExecRefID()),
+                        safeGetField(message, new ClOrdID())
+                );
             case MsgType.TRADE_CAPTURE_REPORT_ACK:
             case MsgType.TRADE_CAPTURE_REPORT_REQUEST_ACK:
-                return safeGetField(message, new ClOrdID());
+                return of(safeGetField(message, new ClOrdID()));
             case MsgType.TRADE_CAPTURE_REPORT:
-                return safeGetField(message, new TradeReportID());
+                return of(
+                        safeGetField(message, new TradeReportID()),
+                        safeGetField(message, new ClOrdID())
+                );
             default:
-                return Optional.empty();
+                return of();
             //                return safeGetField(message, new RefSeqNum()).map(Object::toString)
             //                    .orElseThrow(() -> new QuickFixJException("RefSeqNum not found"));
 
@@ -100,9 +103,10 @@ public class FixMessageUtils {
     }
 
     @SafeVarargs
-    public static <T> Stream<T> of(Optional<T>... optionals) {
+    public static <T> List<T> of(Optional<T>... optionals) {
         return Stream.of(optionals)
-                .flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty));
+                .flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty))
+                .collect(Collectors.toList());
     }
 
     public static <T> Stream<T> stream(Iterator<T> iterator) {
@@ -112,8 +116,10 @@ public class FixMessageUtils {
     public static List<List<Group>> findAnyGroups(Group group, Integer... tags) {
         Map<Integer, List<Group>> groupMap = stream(group.groupKeyIterator()).collect(
                 Collectors.toMap(tag -> tag, group::getGroups));
-        return Flux.just(tags).flatMap(
-                tag -> Mono.justOrEmpty(Optional.ofNullable(groupMap.get(tag)))).collectList().block();
+        return Stream.of(tags)
+                .map(tag -> Optional.ofNullable(groupMap.get(tag)))
+                .flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty))
+                .collect(Collectors.toList());
     }
 
     public static List<List<Group>> findAllGroups(Group group, Integer... tags) {
@@ -126,8 +132,10 @@ public class FixMessageUtils {
         Map<Integer, ? extends Field<?>> fieldMap = stream(group.iterator())
                 .filter(field -> tagsList.contains(field.getTag()))
                 .collect(Collectors.toMap(Field::getTag, field -> field));
-        return Flux.just(tags).flatMap(
-                tag -> Mono.justOrEmpty(Optional.ofNullable(fieldMap.get(tag)))).collectList().block();
+        return Stream.of(tags)
+                .map(tag -> Optional.ofNullable(fieldMap.get(tag)))
+                .flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty))
+                .collect(Collectors.toList());
     }
 
     public static List<? extends Field<?>> findAllFields(Group group, Integer... tags) {

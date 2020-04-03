@@ -10,6 +10,9 @@ import quickfix.ConfigError;
 import quickfix.Connector;
 
 import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -23,17 +26,27 @@ public class FixConnectionTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
     @Test
     public void startAndStop() throws Exception {
         Connector connector = mock(Connector.class);
-        StartupLatch startupLatch = new StartupLatch(1, FixConnectionType.ACCEPTOR, Duration.ofSeconds(1));
+        StartupLatch startupLatch = new StartupLatch(1, FixConnectionType.INITIATOR, Duration.ofSeconds(1));
         FixConnection connectorManager = new FixConnection(connector, startupLatch);
 
-        // When
+        //Not yet running
+        assertFalse(connectorManager.isRunning());
+
+        //Notify startup latch about fix sessio logged on
+        scheduledExecutorService.schedule(() -> startupLatch.loggedOn(null), 1, TimeUnit.SECONDS);
+
+        // Wait until started
         connectorManager.start();
-        startupLatch.created(null);
+
+        //Check running
         assertTrue(connectorManager.isRunning());
 
+        //Stop
         connectorManager.stop();
         assertFalse(connectorManager.isRunning());
 
