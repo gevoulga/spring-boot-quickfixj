@@ -1,17 +1,6 @@
 {
   "properties": [
     {
-      "name": "quickfixj.config",
-      "type": "java.lang.String",
-      "description": "The location of the configuration file to use to initialize QuickFixJ."
-    },
-    {
-      "name": "quickfixj.jmx-enabled",
-      "type": "java.lang.Boolean",
-      "description": "Whether to register the Jmx MBeans.",
-      "defaultValue": false
-    },
-    {
       "name": "quickfixj.startup.timeout",
       "type": "java.time.Duration",
       "description": "Timeout to wait during spring-context startup, until the sessions have been created (for acceptor connection), or connected (for initiator connection).\nIf session has not been established, spring startup fails.\nIf null(not defined), no startup timeout is applied.",
