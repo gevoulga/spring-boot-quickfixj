@@ -99,7 +99,7 @@ public class FixSessionManager implements Application {
     public void onLogout(SessionID sessionId) {
         try (LoggingContext ignore = loggingId.loggingCtx(sessionId)) {
             if (fixConnectionType.isAcceptor()) {
-                logger(sessionId).info("Session logged out.", sessionId);
+                logger(sessionId).info("Session logged out.");
             } else {
                 logger(sessionId).error("Session logged out.");
             }

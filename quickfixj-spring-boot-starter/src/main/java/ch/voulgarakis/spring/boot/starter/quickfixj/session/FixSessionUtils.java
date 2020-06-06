@@ -64,7 +64,7 @@ public class FixSessionUtils {
                 .collect(Collectors.toList());
     }
 
-    static String extractFixSessionName(AbstractFixSession fixSession) {
+    public static String extractFixSessionName(AbstractFixSession fixSession) {
         FixSessionMapping[] annotationsByType = fixSession.getClass().getAnnotationsByType(FixSessionMapping.class);
         if (annotationsByType.length > 1) {
             throw new QuickFixJConfigurationException("Only one @FixSessionMapping(...) is allowed.");

@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import static ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMessageUtils.*;
+
 public class RefIdSelector implements Predicate<Message> {
 
     private final Message request;
@@ -36,27 +38,37 @@ public class RefIdSelector implements Predicate<Message> {
     @Override
     public boolean test(Message message) {
         //The Request Id and message sequence Id
-        Optional<String> reqId = FixMessageUtils.safeGetIdForRequest(request);
-        Optional<String> msgSeqId = FixMessageUtils.safeGetField(request.getHeader(), new MsgSeqNum()).map(Object::toString);
+        Optional<String> reqId = safeGetIdForRequest(request);
+        Optional<String> msgSeqId = safeGetField(request.getHeader(), new MsgSeqNum()).map(Object::toString);
         //The Response reference Id and the message sequence Reference Id
-        List<String> refId = FixMessageUtils.safeGetRefIdForResponse(message);
-        Optional<String> refSeqNum = FixMessageUtils.safeGetField(message, new RefSeqNum()).map(Object::toString);
+        List<String> refId = safeGetRefIdForResponse(message);
+        Optional<String> refSeqNum = safeGetField(message, new RefSeqNum()).map(Object::toString);
         //Compare if reqId of request is same as reference Id from response
         return presentAndEquals(reqId, refId)
                 //Or message sequence Id from request is the same as the reference sequence number of the response
-                || presentAndEquals(msgSeqId, refSeqNum);
+                || presentAndEquals(msgSeqId, refSeqNum)
+                //Or use a custom defined comparison between request-response
+                || orElse(request, message);
     }
 
-    private static boolean presentAndEquals(Optional<String> s1, List<String> s2) {
-        return s1.isPresent() && s2.stream().anyMatch(s -> StringUtils.equals(s, s1.get()));
+    private boolean presentAndEquals(Optional<String> s1, List<String> s2) {
+        return s1.isPresent() && s2.stream().anyMatch(s -> isEqual(s1.get(), s));
     }
 
-    private static boolean presentAndEquals(Optional<String> s1, Optional<String> s2) {
-        return s1.isPresent() && s2.isPresent() && StringUtils.equals(s1.get(), s2.get());
+    private boolean presentAndEquals(Optional<String> s1, Optional<String> s2) {
+        return s1.isPresent() && s2.isPresent() && isEqual(s1.get(), s2.get());
+    }
+
+    protected boolean isEqual(String reqId, String refId) {
+        return StringUtils.equals(reqId, refId);
+    }
+
+    protected boolean orElse(Message request, Message message) {
+        return false;
     }
 
     @Override
     public String toString() {
-        return FixMessageUtils.safeGetIdForRequest(request).orElse(super.toString());
+        return safeGetIdForRequest(request).orElse(super.toString());
     }
 }
