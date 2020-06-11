@@ -16,6 +16,7 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.junit4.SpringRunner;
+import quickfix.Message;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
@@ -48,7 +50,7 @@ public class FixSessionSettingsTest {
     private ResourceLoader resourceLoader;
 
     @Test
-    public void loadSettings() {
+    public void testLoadSettings() {
         SessionSettings actual = FixSessionSettings
                 .loadSettings("classpath:quickfixj-with-placeholders.cfg", environment, resourceLoader);
 
@@ -56,11 +58,11 @@ public class FixSessionSettingsTest {
     }
 
     @Test
-    public void createConnector() {
+    public void testCreateConnector() {
     }
 
     @Test
-    public void extractSessionName() {
+    public void testExtractSessionName() {
         String sessionName = FixSessionSettings
                 .extractSessionName(sessionSettings, new SessionID("FIX.4.3", "TEST_CLIENT", "FIX"));
 
@@ -68,7 +70,30 @@ public class FixSessionSettingsTest {
     }
 
     @Test
-    public void authenticate() {
+    public void testAuthenticate() {
+    }
+
+    @Test
+    public void testCreateSession() {
+        AbstractFixSession abstractFixSession = new AbstractFixSession(sessionSettings) {
+
+            @Override
+            protected void received(Message message) {
+                //nth to do
+            }
+
+            @Override
+            protected void error(SessionException message) {
+//nth to do
+            }
+
+            @Override
+            protected void authenticate(Message message) {
+//nth to do
+            }
+        };
+
+        assertEquals(abstractFixSession.getSessionId(), new SessionID("FIX.4.3", "TEST_CLIENT", "FIX"));
     }
 
     @TestConfiguration

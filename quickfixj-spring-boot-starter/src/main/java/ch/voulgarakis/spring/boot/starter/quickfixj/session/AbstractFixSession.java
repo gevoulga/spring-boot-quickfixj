@@ -19,16 +19,55 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionInterface;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
-import quickfix.Message;
-import quickfix.RejectLogon;
-import quickfix.Session;
-import quickfix.SessionID;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import quickfix.*;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public abstract class AbstractFixSession implements FixSessionInterface {
 
     private SessionID sessionId;
+
+    //--------------------------------------------------
+    //--------------------CONSTRUCTORS------------------
+    //--------------------------------------------------
+
+    /**
+     * SessionID resolved by {@link FixSessionManager}.
+     */
+    public AbstractFixSession() {
+    }
+
+    /**
+     * @param sessionId Session Id manually assigned.
+     */
+    public AbstractFixSession(SessionID sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    /**
+     * SessionID resolved from {@link SessionSettings}.
+     *
+     * @param sessionSettings the quickfixj session settings to resolve the SessionID from.
+     */
+    public AbstractFixSession(SessionSettings sessionSettings) {
+        List<SessionID> sessionIds = FixSessionUtils.stream(sessionSettings)
+                //find the session id of this session
+                .map(sessionID -> FixSessionUtils.getFixSession(sessionSettings, Collections.singletonList(this), sessionID))
+                //return the session id
+                .map(ImmutablePair::getLeft)
+                .collect(Collectors.toList());
+        if (sessionIds.isEmpty()) {
+            throw new QuickFixJConfigurationException("No session id found");
+        } else if (sessionIds.size() > 1) {
+            throw new QuickFixJConfigurationException("Too many sessionIds found: " + sessionIds);
+        }
+
+        this.sessionId = sessionIds.get(0);
+    }
 
     //--------------------------------------------------
     //-----------------FIX MESSAGE/ERROR----------------
@@ -86,7 +125,7 @@ public abstract class AbstractFixSession implements FixSessionInterface {
     final void setSessionId(SessionID sessionID) {
         if (Objects.isNull(this.sessionId)) {
             this.sessionId = sessionID;
-        } else {
+        } else if (!Objects.equals(sessionID, this.sessionId)) {
             throw new QuickFixJConfigurationException("Not allowed to set SessionId more than once.");
         }
     }
