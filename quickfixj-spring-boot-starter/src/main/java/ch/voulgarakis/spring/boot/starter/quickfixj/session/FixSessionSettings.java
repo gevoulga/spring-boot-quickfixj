@@ -142,7 +142,11 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader, SessionID sessionID) {
-        if (sessionSettings.isSetting(sessionID, DATA_DICTIONARY)) {
+        boolean isDictionaryDefined = Objects.nonNull(sessionID) ?
+                sessionSettings.isSetting(sessionID, DATA_DICTIONARY) :
+                sessionSettings.isSetting(DATA_DICTIONARY);
+
+        if (isDictionaryDefined) {
             try {
                 String dataDictionaryLocation = Objects.nonNull(sessionID) ?
                         sessionSettings.getString(sessionID, DATA_DICTIONARY) :
