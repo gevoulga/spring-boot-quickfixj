@@ -18,6 +18,7 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJSettingsNotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,6 +192,22 @@ public class FixSessionSettings extends ResourceCondition {
         } catch (ConfigError configError) {
             throw new QuickFixJConfigurationException("Failed to get SessionName from properties.", configError);
         }
+    }
+
+    public static SessionID sessionID(SessionSettings sessionSettings, String sessionName) {
+        List<SessionID> sessionIds = stream(sessionSettings)
+                .filter(sessionID -> {
+                    String extractedSessionName = extractSessionName(sessionSettings, sessionID);
+                    return StringUtils.equals(extractedSessionName, sessionName);
+                })
+                .collect(Collectors.toList());
+        
+        if (sessionIds.isEmpty()) {
+            throw new QuickFixJConfigurationException("No session id found");
+        } else if (sessionIds.size() > 1) {
+            throw new QuickFixJConfigurationException("Too many sessionIds found: " + sessionIds);
+        }
+        return sessionIds.get(0);
     }
 
     public static Message authenticate(SessionSettings sessionSettings, SessionID sessionID, Message message) {
