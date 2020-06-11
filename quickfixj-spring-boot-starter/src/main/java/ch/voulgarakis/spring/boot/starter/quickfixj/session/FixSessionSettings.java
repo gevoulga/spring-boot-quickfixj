@@ -28,6 +28,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import quickfix.Dictionary;
 import quickfix.*;
 import quickfix.field.Password;
 import quickfix.field.Username;
@@ -45,6 +46,7 @@ import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUti
 import static java.lang.Thread.currentThread;
 import static java.util.Optional.empty;
 import static org.apache.commons.lang3.tuple.Pair.of;
+import static quickfix.SessionSettings.*;
 
 public class FixSessionSettings extends ResourceCondition {
 
@@ -201,13 +203,28 @@ public class FixSessionSettings extends ResourceCondition {
                     return StringUtils.equals(extractedSessionName, sessionName);
                 })
                 .collect(Collectors.toList());
-        
+
         if (sessionIds.isEmpty()) {
             throw new QuickFixJConfigurationException("No session id found");
         } else if (sessionIds.size() > 1) {
             throw new QuickFixJConfigurationException("Too many sessionIds found: " + sessionIds);
         }
         return sessionIds.get(0);
+    }
+
+    public static SessionID sessionID(Dictionary dictionary) {
+        try {
+            return new SessionID(dictionary.getString(BEGINSTRING),
+                    dictionary.getString(SENDERCOMPID),
+                    dictionary.getString(SENDERSUBID),
+                    dictionary.getString(SENDERLOCID),
+                    dictionary.getString(TARGETCOMPID),
+                    dictionary.getString(TARGETSUBID),
+                    dictionary.getString(TARGETLOCID),
+                    dictionary.getString(SESSION_QUALIFIER));
+        } catch (ConfigError | FieldConvertError e) {
+            throw new QuickFixJConfigurationException("Could not extract SessionID from Dictionary", e);
+        }
     }
 
     public static Message authenticate(SessionSettings sessionSettings, SessionID sessionID, Message message) {
