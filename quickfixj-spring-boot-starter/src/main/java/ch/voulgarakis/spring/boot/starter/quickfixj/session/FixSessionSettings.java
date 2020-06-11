@@ -213,19 +213,17 @@ public class FixSessionSettings extends ResourceCondition {
         return sessionIds.get(0);
     }
 
-    public static SessionID sessionID(Dictionary dictionary) {
-        return sessionID(dictionary.toMap());
-    }
-
-    public static SessionID sessionID(Map<Object, Object> map) {
-        return new SessionID(map.getOrDefault(BEGINSTRING, NOT_SET).toString(),
-                map.getOrDefault(SENDERCOMPID, NOT_SET).toString(),
-                map.getOrDefault(SENDERSUBID, NOT_SET).toString(),
-                map.getOrDefault(SENDERLOCID, NOT_SET).toString(),
-                map.getOrDefault(TARGETCOMPID, NOT_SET).toString(),
-                map.getOrDefault(TARGETSUBID, NOT_SET).toString(),
-                map.getOrDefault(TARGETLOCID, NOT_SET).toString(),
-                map.getOrDefault(SESSION_QUALIFIER, NOT_SET).toString());
+    public static SessionID sessionID(SessionSettings sessionSettings, Dictionary dictionary) {
+        Properties properties = sessionSettings.getDefaultProperties();
+        properties.putAll(dictionary.toMap());
+        return new SessionID(properties.getProperty(BEGINSTRING, NOT_SET),
+                properties.getProperty(SENDERCOMPID, NOT_SET),
+                properties.getProperty(SENDERSUBID, NOT_SET),
+                properties.getProperty(SENDERLOCID, NOT_SET),
+                properties.getProperty(TARGETCOMPID, NOT_SET),
+                properties.getProperty(TARGETSUBID, NOT_SET),
+                properties.getProperty(TARGETLOCID, NOT_SET),
+                properties.getProperty(SESSION_QUALIFIER, NOT_SET));
     }
 
     public static Message authenticate(SessionSettings sessionSettings, SessionID sessionID, Message message) {
