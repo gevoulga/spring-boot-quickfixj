@@ -46,6 +46,7 @@ import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUti
 import static java.lang.Thread.currentThread;
 import static java.util.Optional.empty;
 import static org.apache.commons.lang3.tuple.Pair.of;
+import static quickfix.SessionID.NOT_SET;
 import static quickfix.SessionSettings.*;
 
 public class FixSessionSettings extends ResourceCondition {
@@ -213,18 +214,18 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     public static SessionID sessionID(Dictionary dictionary) {
-        try {
-            return new SessionID(dictionary.getString(BEGINSTRING),
-                    dictionary.getString(SENDERCOMPID),
-                    dictionary.getString(SENDERSUBID),
-                    dictionary.getString(SENDERLOCID),
-                    dictionary.getString(TARGETCOMPID),
-                    dictionary.getString(TARGETSUBID),
-                    dictionary.getString(TARGETLOCID),
-                    dictionary.getString(SESSION_QUALIFIER));
-        } catch (ConfigError | FieldConvertError e) {
-            throw new QuickFixJConfigurationException("Could not extract SessionID from Dictionary", e);
-        }
+        return sessionID(dictionary.toMap());
+    }
+
+    public static SessionID sessionID(Map<Object, Object> map) {
+        return new SessionID(map.getOrDefault(BEGINSTRING, NOT_SET).toString(),
+                map.getOrDefault(SENDERCOMPID, NOT_SET).toString(),
+                map.getOrDefault(SENDERSUBID, NOT_SET).toString(),
+                map.getOrDefault(SENDERLOCID, NOT_SET).toString(),
+                map.getOrDefault(TARGETCOMPID, NOT_SET).toString(),
+                map.getOrDefault(TARGETSUBID, NOT_SET).toString(),
+                map.getOrDefault(TARGETLOCID, NOT_SET).toString(),
+                map.getOrDefault(SESSION_QUALIFIER, NOT_SET).toString());
     }
 
     public static Message authenticate(SessionSettings sessionSettings, SessionID sessionID, Message message) {
