@@ -135,17 +135,29 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader) {
+        resolveDirectories(sessionSettings, resourceLoader, null);
         stream(sessionSettings).forEach(sessionID -> {
-            if (sessionSettings.isSetting(sessionID, DATA_DICTIONARY)) {
-                try {
-                    String dataDictionaryLocation = sessionSettings.getString(sessionID, DATA_DICTIONARY);
-                    String path = getPath(dataDictionaryLocation, resourceLoader);
-                    sessionSettings.setString(sessionID, DATA_DICTIONARY, path);
-                } catch (ConfigError e) {
-                    throw new QuickFixJConfigurationException("Failed to set DataDictionary location", e);
-                }
-            }
+            resolveDirectories(sessionSettings, resourceLoader, sessionID);
         });
+    }
+
+    private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader, SessionID sessionID) {
+        if (sessionSettings.isSetting(sessionID, DATA_DICTIONARY)) {
+            try {
+                String dataDictionaryLocation = Objects.nonNull(sessionID) ?
+                        sessionSettings.getString(sessionID, DATA_DICTIONARY) :
+                        sessionSettings.getString(DATA_DICTIONARY);
+
+                String path = getPath(dataDictionaryLocation, resourceLoader);
+
+                if (Objects.nonNull(sessionID))
+                    sessionSettings.setString(sessionID, DATA_DICTIONARY, path);
+                else
+                    sessionSettings.setString(DATA_DICTIONARY, path);
+            } catch (ConfigError e) {
+                throw new QuickFixJConfigurationException("Failed to set DataDictionary location", e);
+            }
+        }
     }
 
     private static String getPath(String dataDictionaryLocation, ResourceLoader resourceLoader) {
