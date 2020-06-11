@@ -16,24 +16,29 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.RejectException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import quickfix.Message;
-import quickfix.*;
+import quickfix.RejectLogon;
+import quickfix.SessionID;
 import quickfix.fix43.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = FixSessionTestContext.class)
+@SpringBootTest(classes = {EmptyContext.class, FixSessionTest.FixSessionTestContext.class})
 @TestPropertySource("classpath:fixSessionTest.properties")
 @DirtiesContext //Stop port already bound issues from other tests
 public class FixSessionTest {
@@ -44,7 +49,7 @@ public class FixSessionTest {
     private AbstractFixSession fixSession;
 
     @Test
-    public void test() throws FieldNotFound, IncorrectTagValue, IncorrectDataFormat, UnsupportedMessageType, RejectLogon {
+    public void test() throws RejectLogon {
         SessionID sessionId = new SessionID("FIX.4.3", "TEST_CLIENT", "FIX");
 
         //Logon
@@ -71,6 +76,16 @@ public class FixSessionTest {
         sessionManager.onLogout(sessionId);
         verify(fixSession, times(2)).error(any(SessionDroppedException.class));
 
+    }
+
+    @TestConfiguration
+    @EnableAutoConfiguration
+    @EnableQuickFixJ
+    static class FixSessionTestContext {
+        @Bean
+        public AbstractFixSession fixSession() {
+            return mock(AbstractFixSession.class);
+        }
     }
 
 }

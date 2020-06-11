@@ -36,10 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,22 +104,34 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     private static SessionSettings createSessionSettings(Environment environment, ResourceLoader resourceLoader, Resource resource) throws ConfigError, IOException {
-        InputStream stream;
-        if (Objects.nonNull(environment)) {
-            try (InputStream inputStream = resource.getInputStream()) {
+        try (InputStream inputStream = resource.getInputStream()) {
+            //SessionSettings sessionSettings = new SessionSettings(inputStream);
+            InputStream stream;
+
+            //Replace placeholders
+            if (Objects.nonNull(environment)) {
                 Scanner s = new Scanner(inputStream).useDelimiter("\\A");
                 String sessionSettingsAsString = s.hasNext() ? s.next() : "";
                 String replacedPropertiesSessionSettingsString = environment.resolvePlaceholders(
                         sessionSettingsAsString);
                 stream = new ByteArrayInputStream(
                         replacedPropertiesSessionSettingsString.getBytes());
+            } else {
+                stream = resource.getInputStream();
             }
-        } else {
-            stream = resource.getInputStream();
+
+            SessionSettings sessionSettings = new SessionSettings(stream);
+            //Replace placeholders
+            sessionSettings.setVariableValues(new Properties() {
+                @Override
+                public String getProperty(String key) {
+                    return environment.getProperty(key);
+                }
+            });
+            //Replace the directories specified to a format understood by quickfixj
+            resolveDirectories(sessionSettings, resourceLoader);
+            return sessionSettings;
         }
-        SessionSettings sessionSettings = new SessionSettings(stream);
-        resolveDirectories(sessionSettings, resourceLoader);
-        return sessionSettings;
     }
 
     private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader) {

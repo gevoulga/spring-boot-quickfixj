@@ -16,19 +16,8 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static org.mockito.Mockito.mock;
-
 @Configuration
-@EnableAutoConfiguration
-@EnableQuickFixJ
-public class FixSessionTestContext {
-    @Bean
-    public AbstractFixSession fixSession() {
-        return mock(AbstractFixSession.class);
-    }
+public class EmptyContext {
 }
