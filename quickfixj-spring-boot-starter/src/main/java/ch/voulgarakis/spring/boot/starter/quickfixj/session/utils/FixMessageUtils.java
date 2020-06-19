@@ -97,7 +97,6 @@ public class FixMessageUtils {
                 );
             case MsgType.TRADE_CAPTURE_REPORT_ACK:
             case MsgType.TRADE_CAPTURE_REPORT_REQUEST_ACK:
-                return of(safeGetField(message, new ClOrdID()));
             case MsgType.TRADE_CAPTURE_REPORT:
                 return of(
                         safeGetField(message, new TradeReportID()),
