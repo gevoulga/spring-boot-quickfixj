@@ -84,12 +84,17 @@ public class FixSessionSettingsTest {
 
             @Override
             protected void error(SessionException message) {
-//nth to do
+                //nth to do
+            }
+
+            @Override
+            protected void loggedOn() {
+                //nth to do
             }
 
             @Override
             protected void authenticate(Message message) {
-//nth to do
+                //nth to do
             }
         };
 

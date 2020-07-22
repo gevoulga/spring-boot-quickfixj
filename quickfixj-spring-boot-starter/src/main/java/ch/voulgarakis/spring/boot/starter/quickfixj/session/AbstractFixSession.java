@@ -89,6 +89,11 @@ public abstract class AbstractFixSession implements FixSessionInterface {
     protected abstract void error(SessionException message);
 
     /**
+     * Notifies that the session has been logged on.
+     */
+    protected abstract void loggedOn();
+
+    /**
      * Notifies that a fix message has been sent
      *
      * @param message the actual message that has been sent.
