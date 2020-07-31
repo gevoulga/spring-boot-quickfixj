@@ -23,6 +23,7 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUtils;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMessageUtils;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
@@ -56,6 +57,13 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
     private final AtomicReference<SessionDroppedException> loggedOut = new AtomicReference<>();
 
     //--------------------------------------------------
+    //-----------------------METRICS--------------------
+    //--------------------------------------------------
+    private Counter messagesReceived;
+    private Counter messagesSent;
+    private Counter rejections;
+
+    //--------------------------------------------------
     //--------------------CONSTRUCTORS------------------
     //--------------------------------------------------
 
@@ -87,10 +95,36 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
     @Autowired(required = false)
     public void setMeterRegistry(MeterRegistry meterRegistry) {
         String fixSessionName = FixSessionUtils.extractFixSessionName(this);
+
+        //The connection state
+        Gauge.builder("quickfixj.flux.connection", () -> Objects.isNull(loggedOut.get()) ? 1 : 0)
+                .description("Connection state of reactive fix session")
+                .tag("fixSessionName", fixSessionName)
+                .register(meterRegistry);
+
+        //The number of subscribers
         Gauge.builder("quickfixj.flux.subscribers", sinks, Collection::size)
                 .description("Number of subscribers on reactive fix session")
                 .tag("fixSessionName", fixSessionName)
                 .register(meterRegistry);
+
+        //The counters for FIX messages and FIX errors
+        messagesReceived = Counter.builder("quickfixj.flux.messages.received")
+                .description("Number of received FIX messages on reactive fix session")
+                .tag("fixSessionName", fixSessionName)
+                .baseUnit("messages")
+                .register(meterRegistry);
+        messagesSent = Counter.builder("quickfixj.flux.messages.sent")
+                .description("Number of sent FIX messages on reactive fix session")
+                .tag("fixSessionName", fixSessionName)
+                .baseUnit("messages")
+                .register(meterRegistry);
+        rejections = Counter.builder("quickfixj.flux.rejections")
+                .description("Number of received FIX rejections on reactive fix session")
+                .tag("fixSessionName", fixSessionName)
+                .baseUnit("rejects")
+                .register(meterRegistry);
+
     }
 
     //--------------------------------------------------
@@ -99,12 +133,18 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
     @Override
     protected void received(Message message) {
         //loggedOut(null);
+        if (Objects.nonNull(messagesReceived)) {
+            messagesReceived.increment();
+        }
         notifySubscribers(message, sink -> sink.next(message));
     }
 
     @Override
     protected void error(SessionException ex) {
         loggedOut(ex);
+        if (Objects.nonNull(rejections)) {
+            rejections.increment();
+        }
         notifySubscribers(ex.getFixMessage(), sink -> sink.error(ex));
     }
 
@@ -198,11 +238,19 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
             try {
                 Message message = messageSupplier.get();
                 Session.sendToTarget(message, getSessionId());
+                if (Objects.nonNull(messagesSent)) {
+                    messagesSent.increment();
+                }
                 return Mono.just(message);
             } catch (SessionNotFound sessionNotFound) {
+                if (Objects.nonNull(rejections)) {
+                    rejections.increment();
+                }
                 return Mono.error(new QuickFixJException(sessionNotFound));
             }
-        });
+        })
+                //expose metrics if enabled
+                .metrics();
     }
 
     @Override
@@ -215,6 +263,8 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
                     RefIdSelector refIdSelector = refIdSelectorSupplier.apply(message);
                     //Subscribe to the responses relevant to this quote request
                     return subscribe(refIdSelector);
-                });
+                })
+                //expose metrics if enabled
+                .metrics();
     }
 }
