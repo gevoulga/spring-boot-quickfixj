@@ -19,8 +19,8 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.RejectException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +28,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import quickfix.Message;
 import quickfix.RejectLogon;
 import quickfix.SessionID;
@@ -37,7 +37,7 @@ import quickfix.fix43.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {EmptyContext.class, FixSessionTest.FixSessionTestContext.class})
 @TestPropertySource("classpath:fixSessionTest.properties")
 @DirtiesContext //Stop port already bound issues from other tests
@@ -55,6 +55,7 @@ public class FixSessionTest {
         //Logon
         sessionManager.fromAdmin(new Logon(), sessionId);
         verify(fixSession).authenticate(any(Message.class));
+        verify(fixSession).loggedOn();
 
         //Heartbeats
         sessionManager.fromAdmin(new Heartbeat(), sessionId);

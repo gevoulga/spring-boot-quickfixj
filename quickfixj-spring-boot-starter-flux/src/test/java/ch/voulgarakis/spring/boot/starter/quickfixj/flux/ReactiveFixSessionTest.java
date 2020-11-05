@@ -18,15 +18,15 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import quickfix.Message;
 import quickfix.SessionID;
 import quickfix.field.QuoteID;
@@ -44,7 +44,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = ReactiveFixSessionTestContext.class)
 @TestPropertySource("classpath:fixSessionTest.properties")
 @DirtiesContext //Stop port already bound issues from other tests

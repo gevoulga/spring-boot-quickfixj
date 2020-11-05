@@ -17,8 +17,8 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,14 +26,14 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import quickfix.Message;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 import static junit.framework.TestCase.assertEquals;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {EmptyContext.class, FixSessionSettingsTest.FixSessionSettingsTestContext.class},
         properties = {
                 "port=0",
@@ -82,14 +82,20 @@ public class FixSessionSettingsTest {
                 //nth to do
             }
 
+
             @Override
             protected void error(SessionException message) {
-//nth to do
+                //nth to do
+            }
+
+            @Override
+            protected void loggedOn() {
+                //nth to do
             }
 
             @Override
             protected void authenticate(Message message) {
-//nth to do
+                //nth to do
             }
         };
 

@@ -52,7 +52,9 @@ public class RefIdSelector implements Predicate<Message> {
     }
 
     private boolean presentAndEquals(Optional<String> s1, List<String> s2) {
-        return s1.isPresent() && s2.stream().anyMatch(s -> isEqual(s1.get(), s));
+        return s1.isPresent() && s2.stream()
+                .map(Optional::ofNullable)
+                .anyMatch(s -> presentAndEquals(s1, s));
     }
 
     private boolean presentAndEquals(Optional<String> s1, Optional<String> s2) {

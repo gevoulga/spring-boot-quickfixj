@@ -20,15 +20,15 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
 import org.awaitility.Duration;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import quickfix.*;
 import quickfix.fix43.QuoteRequest;
 
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
         properties = {
                 "quickfixj.config=classpath:quickfixj.cfg",
@@ -72,6 +72,10 @@ public class QuickfixjApplicationTest {
 
                 @Override
                 protected void error(SessionException message) {
+                }
+
+                @Override
+                protected void loggedOn() {
                 }
 
                 @Override

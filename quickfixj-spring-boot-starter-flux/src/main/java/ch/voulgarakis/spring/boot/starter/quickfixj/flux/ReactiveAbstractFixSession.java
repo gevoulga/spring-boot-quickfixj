@@ -58,6 +58,7 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
     //--------------------------------------------------
     //--------------------CONSTRUCTORS------------------
     //--------------------------------------------------
+
     /**
      * SessionID resolved by {@link ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionManager}.
      */
@@ -97,7 +98,7 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
     //--------------------------------------------------
     @Override
     protected void received(Message message) {
-        loggedOut(null);
+        //loggedOut(null);
         notifySubscribers(message, sink -> sink.next(message));
     }
 
@@ -105,6 +106,11 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
     protected void error(SessionException ex) {
         loggedOut(ex);
         notifySubscribers(ex.getFixMessage(), sink -> sink.error(ex));
+    }
+
+    @Override
+    protected void loggedOn() {
+        loggedOut(null);
     }
 
     /**

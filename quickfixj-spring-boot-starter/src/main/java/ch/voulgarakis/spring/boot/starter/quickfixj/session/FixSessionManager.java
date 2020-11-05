@@ -92,6 +92,7 @@ public class FixSessionManager implements Application {
         try (LoggingContext ignore = loggingId.loggingCtx(sessionId)) {
             logger(sessionId).info("Session logged on.");
             startupLatch.loggedOn(sessionId);
+            retrieveSession(sessionId).loggedOn();
         }
     }
 
@@ -135,7 +136,9 @@ public class FixSessionManager implements Application {
             if (!isMessageOfType(message, MsgType.HEARTBEAT, MsgType.RESEND_REQUEST)) {
                 logger(sessionId).debug("Received administrative message: {}", message);
                 if (isMessageOfType(message, MsgType.LOGON)) {
-                    retrieveSession(sessionId).authenticate(message);
+                    AbstractFixSession fixSession = retrieveSession(sessionId);
+                    fixSession.authenticate(message);
+                    fixSession.loggedOn();
                 } else if (isMessageOfType(message, MsgType.LOGOUT)) {
                     retrieveSession(sessionId).error(new SessionDroppedException(message));
                 } else if (RejectException.isReject(message)) {

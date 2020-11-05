@@ -17,7 +17,7 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session.utils;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import quickfix.field.QuoteType;
 
 import java.util.ArrayList;

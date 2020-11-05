@@ -102,11 +102,14 @@ Import `quickfixj-spring-boot-actuator` into your project.
 
 The most important configuration, and the one which is expected to be used in the business logic is the **definition of the Session beans**.
 
-These expose to user functions that allow sending and receiving FIX messages. If more that one FIX sessions are defined in `quickfixj.cfg`, these FIX session beans can either be annotated with `@FixSessionMapping` or implement `NamedBean`. The name of the beans needs to be the same with `SessionName` property in `quickfixj.cfg`.
+These expose to user functions that allow sending and receiving FIX messages.
+If more that one FIX sessions are defined in `quickfixj.cfg`, these FIX session beans can either be annotated with `@FixSessionMapping` or implement `NamedBean`.
+The name of the beans needs to be the same with `SessionName` property in `quickfixj.cfg`.
 
 ==== Reactive Session
 
 An example of a Reactive Fix Session
+
 [source,java]
 ----
 @Component
@@ -126,6 +129,7 @@ public class TestFixSession extends ReactiveAbstractFixSession {
 ----
 
 And then this FIX session can be used:
+
 [source,java]
 ----
 @Service

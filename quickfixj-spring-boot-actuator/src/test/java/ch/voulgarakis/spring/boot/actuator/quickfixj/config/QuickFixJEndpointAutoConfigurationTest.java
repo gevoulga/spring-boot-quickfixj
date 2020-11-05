@@ -18,8 +18,8 @@ package ch.voulgarakis.spring.boot.actuator.quickfixj.config;
 
 import ch.voulgarakis.spring.boot.actuator.quickfixj.endpoint.QuickFixJEndpoint;
 import ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJAutoConfigurationTestConfig;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.EndpointId;
 import org.springframework.boot.actuate.endpoint.InvocationContext;
@@ -30,7 +30,7 @@ import org.springframework.boot.actuate.endpoint.web.WebOperation;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
@@ -39,9 +39,11 @@ import java.util.Properties;
 
 import static ch.voulgarakis.spring.boot.actuator.quickfixj.util.WebDiscoverer.findWebEndpoints;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = QuickFixJAutoConfigurationTestConfig.class)
 @TestPropertySource("classpath:application.properties")
 public class QuickFixJEndpointAutoConfigurationTest {
@@ -55,8 +57,8 @@ public class QuickFixJEndpointAutoConfigurationTest {
 
     @Test
     public void testAutoConfiguredBeans() {
-        assertThat(quickFixJEndpoint).isNotNull();
-        assertThat(quickFixJEndpoint.readProperties().size()).isEqualTo(1);
+        assertNotNull(quickFixJEndpoint);
+        assertEquals(1, quickFixJEndpoint.readProperties().size());
     }
 
     @Test
@@ -71,7 +73,7 @@ public class QuickFixJEndpointAutoConfigurationTest {
         assertThat(endpoints).containsKey(ENDPOINT_ID);
 
         ExposableWebEndpoint endpoint = endpoints.get(ENDPOINT_ID);
-        assertThat(endpoint.getOperations()).hasSize(1);
+        assertEquals(1, endpoint.getOperations().size());
 
         WebOperation operation = endpoint.getOperations().iterator().next();
         Object invoker = ReflectionTestUtils.getField(operation, "invoker");
@@ -80,6 +82,6 @@ public class QuickFixJEndpointAutoConfigurationTest {
         Map<String, Properties> properties =
                 (Map<String, Properties>) ((ReflectiveOperationInvoker) invoker).invoke(
                         new InvocationContext(mock(SecurityContext.class), Collections.emptyMap()));
-        assertThat(properties).hasSize(1);
+        assertEquals(1, properties.size());
     }
 }

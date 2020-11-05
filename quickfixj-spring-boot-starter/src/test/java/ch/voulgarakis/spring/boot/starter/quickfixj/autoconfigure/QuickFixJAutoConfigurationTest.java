@@ -17,19 +17,19 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.connection.FixConnection;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import quickfix.*;
 
 import javax.management.ObjectName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = QuickFixJAutoConfigurationTestConfig.class,
         properties = {
                 "quickfixj.config=classpath:quickfixj.cfg",

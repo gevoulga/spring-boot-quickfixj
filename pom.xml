@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -11,13 +10,9 @@
         <relativePath/>
     </parent>
 
-    <prerequisites>
-        <maven>3.6</maven>
-    </prerequisites>
-
     <groupId>ch.voulgarakis</groupId>
     <artifactId>quickfixj-spring-boot</artifactId>
-    <version>${revision}</version>
+    <version>${revision}${changelist}</version>
     <packaging>pom</packaging>
     <description>QuickfixJ integration in Spring-Boot</description>
 
@@ -29,7 +24,8 @@
     </modules>
 
     <properties>
-        <revision>1.0-SNAPSHOT</revision>
+        <revision>1.0</revision>
+        <changelist>-SNAPSHOT</changelist>
 
         <!-- project -->
         <java.version>1.8</java.version>
@@ -40,11 +36,6 @@
         <!--//////////////-->
         <quickfixj.version>2.1.1</quickfixj.version>
         <awaitility.version>3.1.6</awaitility.version>
-
-        <!--//////////////-->
-        <!-- Test Dependencies -->
-        <!--//////////////-->
-        <testng.version>6.10</testng.version>
     </properties>
 
     <profiles>
@@ -54,49 +45,12 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
+                <changelist>.RELEASE</changelist>
                 <skipTests>true</skipTests>
                 <deployAtEnd>true</deployAtEnd>
             </properties>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>read-current-version</id>
-                                <phase>pre-clean</phase>
-                                <goals>
-                                    <goal>regex-property</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <name>newRevision</name>
-                            <value>${project.version}</value>
-                            <regex>-SNAPSHOT</regex>
-                            <failIfNoMatch>false</failIfNoMatch>
-                            <fileSet/>
-                            <source/>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>versions-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>set-new-version</id>
-                                <phase>pre-clean</phase>
-                                <goals>
-                                    <goal>set-property</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <property>revision</property>
-                            <newVersion>${newRevision}</newVersion>
-                        </configuration>
-                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-scm-plugin</artifactId>
@@ -105,75 +59,13 @@
                                 <id>commit</id>
                                 <phase>deploy</phase>
                                 <goals>
-                                    <goal>checkin</goal>
+                                    <goal>tag</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
                             <tag>REL_v${project.version}</tag>
                             <message>prepare release REL_v${project.version}</message>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>ci-next</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <skipTests>true</skipTests>
-                <deployAtEnd>true</deployAtEnd>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>parse-version</id>
-                                <phase>pre-clean</phase>
-                                <goals>
-                                    <goal>parse-version</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>versions-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>set-release-version</id>
-                                <phase>pre-clean</phase>
-                                <goals>
-                                    <goal>set-property</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <property>revision</property>
-                            <newVersion>
-                                ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT
-                            </newVersion>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-scm-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>commit</id>
-                                <phase>clean</phase>
-                                <goals>
-                                    <goal>checkin</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <message>prepare for next development iteration v${revision}</message>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -195,13 +87,6 @@
                 <groupId>org.awaitility</groupId>
                 <artifactId>awaitility</artifactId>
                 <version>${awaitility.version}</version>
-            </dependency>
-
-            <!-- Test Dependencies -->
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <version>${testng.version}</version>
             </dependency>
 
             <!--Modules-->
@@ -227,6 +112,7 @@
 
     <build>
         <plugins>
+            <!-- pom flatterer needed for CI -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>

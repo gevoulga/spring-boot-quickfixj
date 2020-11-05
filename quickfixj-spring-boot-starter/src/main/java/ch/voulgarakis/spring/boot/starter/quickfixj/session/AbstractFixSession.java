@@ -89,6 +89,11 @@ public abstract class AbstractFixSession implements FixSessionInterface {
     protected abstract void error(SessionException message);
 
     /**
+     * Notifies that the session has been logged on.
+     */
+    protected abstract void loggedOn();
+
+    /**
      * Notifies that a fix message has been sent
      *
      * @param message the actual message that has been sent.
@@ -134,10 +139,10 @@ public abstract class AbstractFixSession implements FixSessionInterface {
     //------------------SESSION STATUS------------------
     //--------------------------------------------------
     @Override
-    public Session getSession() {
+    public boolean isLoggedOn() {
         Session session = Session.lookupSession(getSessionId());
         if (Objects.nonNull(session)) {
-            return session;
+            return session.isLoggedOn();
         } else {
             throw new QuickFixJConfigurationException("Session does not exist.");
         }
