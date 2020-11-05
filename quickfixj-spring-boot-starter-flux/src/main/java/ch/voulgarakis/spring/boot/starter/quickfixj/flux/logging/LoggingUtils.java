@@ -40,11 +40,13 @@ public final class LoggingUtils {
     }
 
     public static Runnable withLoggingContext(Map<String, String> context, Runnable runnable) {
-        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils.withLoggingContext(context, runnable);
+        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils
+                .withLoggingContext(context, runnable);
     }
 
     public static <T> Callable<T> withLoggingContext(Map<String, String> context, Callable<T> callable) {
-        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils.withLoggingContext(context, callable);
+        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils
+                .withLoggingContext(context, callable);
     }
 
     public static Context withLoggingContext(LoggingContext loggingContext) {

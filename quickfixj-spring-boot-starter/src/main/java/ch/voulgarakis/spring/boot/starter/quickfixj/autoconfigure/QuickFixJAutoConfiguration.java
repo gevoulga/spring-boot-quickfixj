@@ -53,7 +53,8 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public SessionSettings sessionSettings(QuickFixJBootProperties properties, Environment environment, ResourceLoader resourceLoader) {
+    public SessionSettings sessionSettings(QuickFixJBootProperties properties, Environment environment,
+                                           ResourceLoader resourceLoader) {
         return FixSessionSettings.loadSettings(properties.getConfig(), environment, resourceLoader);
     }
 
@@ -78,9 +79,13 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Connector connector(Application application, FixConnectionType fixConnectionType, SessionSettings sessionSettings, MessageStoreFactory messageStoreFactory, MessageFactory messageFactory, Optional<LogFactory> logFactory) {
+    public Connector connector(Application application, FixConnectionType fixConnectionType,
+                               SessionSettings sessionSettings, MessageStoreFactory messageStoreFactory,
+                               MessageFactory messageFactory, Optional<LogFactory> logFactory) {
         try {
-            return FixSessionSettings.createConnector(application, fixConnectionType, messageStoreFactory, sessionSettings, logFactory.orElse(null), messageFactory);
+            return FixSessionSettings
+                    .createConnector(application, fixConnectionType, messageStoreFactory, sessionSettings,
+                            logFactory.orElse(null), messageFactory);
         } catch (ConfigError configError) {
             throw new QuickFixJConfigurationException(configError.getMessage(), configError);
         }
@@ -88,7 +93,9 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public StartupLatch startupLatch(SessionSettings sessionSettings, @Value("${quickfixj.startup.timeout}") Duration timeout) throws FieldConvertError, ConfigError {
+    public StartupLatch startupLatch(SessionSettings sessionSettings,
+                                     @Value("${quickfixj.startup.timeout}") Duration timeout)
+            throws FieldConvertError, ConfigError {
         return new StartupLatch(sessionSettings.size(), FixConnectionType.of(sessionSettings), timeout);
     }
 
@@ -106,7 +113,8 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Application application(SessionSettings sessionSettings, FixConnectionType fixConnectionType, List<AbstractFixSession> sessions, StartupLatch startupLatch, LoggingId loggingId) {
+    public Application application(SessionSettings sessionSettings, FixConnectionType fixConnectionType,
+                                   List<AbstractFixSession> sessions, StartupLatch startupLatch, LoggingId loggingId) {
         if (sessionSettings.size() != 0 && (sessions == null || sessions.isEmpty())) {
             throw new QuickFixJConfigurationException(format(
                     "You need to define %s beans that will handle FIX message exchange for the sessions: %s",

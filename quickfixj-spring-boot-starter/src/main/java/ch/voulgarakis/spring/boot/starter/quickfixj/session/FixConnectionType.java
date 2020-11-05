@@ -52,7 +52,8 @@ public enum FixConnectionType {
     }
 
     public Connector createConnector(Application application, MessageStoreFactory messageStoreFactory,
-                                     SessionSettings sessionSettings, LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+                                     SessionSettings sessionSettings, LogFactory logFactory,
+                                     MessageFactory messageFactory) throws ConfigError {
         if (isAcceptor) {
             if (isConcurrent) {
                 return new ThreadedSocketAcceptor(application, messageStoreFactory, sessionSettings, logFactory,

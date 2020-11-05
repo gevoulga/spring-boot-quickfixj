@@ -35,7 +35,8 @@ import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSet
 public class FixSessionUtils {
 
     static ImmutablePair<SessionID, AbstractFixSession> getFixSession(SessionSettings sessionSettings,
-                                                                      List<AbstractFixSession> sessions, SessionID sessionID) {
+                                                                      List<AbstractFixSession> sessions,
+                                                                      SessionID sessionID) {
         AbstractFixSession fixSession;
         if (sessionSettings.size() == 1 && sessions.size() == 1) {
             fixSession = sessions.get(0);
@@ -108,7 +109,9 @@ public class FixSessionUtils {
                     .filter(sessionName -> Collections.frequency(sessionNames, sessionName) > 1)
                     .collect(Collectors.toList());
             if (!duplicateSessionNames.isEmpty()) {
-                throw new QuickFixJConfigurationException(String.format(errorMessage + ". [SessionName/SessionId] Found: %s in %s", duplicateSessionNames, sessionNames));
+                throw new QuickFixJConfigurationException(
+                        String.format(errorMessage + ". [SessionName/SessionId] Found: %s in %s", duplicateSessionNames,
+                                sessionNames));
             }
         }
     }

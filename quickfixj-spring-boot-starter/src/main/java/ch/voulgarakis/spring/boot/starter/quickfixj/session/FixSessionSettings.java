@@ -64,7 +64,8 @@ public class FixSessionSettings extends ResourceCondition {
                 "file:./" + QUICKFIXJ_CONFIG, "classpath:/" + QUICKFIXJ_CONFIG);
     }
 
-    public static SessionSettings loadSettings(String userDefinedLocation, Environment environment, ResourceLoader resourceLoader) {
+    public static SessionSettings loadSettings(String userDefinedLocation, Environment environment,
+                                               ResourceLoader resourceLoader) {
         List<Pair<String, Boolean>> locations = Stream.of(of(userDefinedLocation, true),
                 of(System.getProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG), true),
                 of("file:./" + QUICKFIXJ_CONFIG, false),
@@ -107,7 +108,8 @@ public class FixSessionSettings extends ResourceCondition {
         }
     }
 
-    private static SessionSettings createSessionSettings(Environment environment, ResourceLoader resourceLoader, Resource resource) throws ConfigError, IOException {
+    private static SessionSettings createSessionSettings(Environment environment, ResourceLoader resourceLoader,
+                                                         Resource resource) throws ConfigError, IOException {
         try (InputStream inputStream = resource.getInputStream()) {
             //SessionSettings sessionSettings = new SessionSettings(inputStream);
             InputStream stream;
@@ -145,7 +147,8 @@ public class FixSessionSettings extends ResourceCondition {
         });
     }
 
-    private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader, SessionID sessionID) {
+    private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader,
+                                           SessionID sessionID) {
         boolean isDictionaryDefined = Objects.nonNull(sessionID) ?
                 sessionSettings.isSetting(sessionID, DATA_DICTIONARY) :
                 sessionSettings.isSetting(DATA_DICTIONARY);
@@ -158,10 +161,11 @@ public class FixSessionSettings extends ResourceCondition {
 
                 String path = getPath(dataDictionaryLocation, resourceLoader);
 
-                if (Objects.nonNull(sessionID))
+                if (Objects.nonNull(sessionID)) {
                     sessionSettings.setString(sessionID, DATA_DICTIONARY, path);
-                else
+                } else {
                     sessionSettings.setString(DATA_DICTIONARY, path);
+                }
             } catch (ConfigError e) {
                 throw new QuickFixJConfigurationException("Failed to set DataDictionary location", e);
             }
@@ -180,7 +184,9 @@ public class FixSessionSettings extends ResourceCondition {
         }
     }
 
-    public static Connector createConnector(Application application, FixConnectionType fixConnectionType, MessageStoreFactory messageStoreFactory, SessionSettings sessionSettings, LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+    public static Connector createConnector(Application application, FixConnectionType fixConnectionType,
+                                            MessageStoreFactory messageStoreFactory, SessionSettings sessionSettings,
+                                            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
         return fixConnectionType
                 .createConnector(application, messageStoreFactory, sessionSettings, logFactory, messageFactory);
     }

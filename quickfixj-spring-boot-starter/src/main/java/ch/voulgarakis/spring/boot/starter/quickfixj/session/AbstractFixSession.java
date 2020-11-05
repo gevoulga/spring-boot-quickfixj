@@ -56,7 +56,8 @@ public abstract class AbstractFixSession implements FixSessionInterface {
     public AbstractFixSession(SessionSettings sessionSettings) {
         List<SessionID> sessionIds = FixSessionUtils.stream(sessionSettings)
                 //find the session id of this session
-                .map(sessionID -> FixSessionUtils.getFixSession(sessionSettings, Collections.singletonList(this), sessionID))
+                .map(sessionID -> FixSessionUtils
+                        .getFixSession(sessionSettings, Collections.singletonList(this), sessionID))
                 //return the session id
                 .map(ImmutablePair::getLeft)
                 .collect(Collectors.toList());

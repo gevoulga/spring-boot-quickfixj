@@ -46,8 +46,9 @@ public class Log4jCapture extends AppenderSkeleton {
 
     @Override
     protected void append(LoggingEvent loggingEvent) {
-        if (loggingEvent.getLevel().isGreaterOrEqual(level))
+        if (loggingEvent.getLevel().isGreaterOrEqual(level)) {
             log.add(loggingEvent);
+        }
     }
 
     @Override

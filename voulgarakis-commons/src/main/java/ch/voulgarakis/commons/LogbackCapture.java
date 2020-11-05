@@ -41,8 +41,9 @@ public class LogbackCapture extends AppenderBase<ILoggingEvent> {
 
     @Override
     protected void append(ILoggingEvent loggingEvent) {
-        if (loggingEvent.getLevel().isGreaterOrEqual(level))
+        if (loggingEvent.getLevel().isGreaterOrEqual(level)) {
             log.add(loggingEvent);
+        }
     }
 
     public List<ILoggingEvent> getLog() {

@@ -54,10 +54,11 @@ public class LogContext implements AutoCloseable {
                 .forEach(e -> {
                     String key = e.getKey();
                     Object oldValue = e.getValue();
-                    if (Objects.isNull(oldValue))
+                    if (Objects.isNull(oldValue)) {
                         MDC.remove(key);
-                    else
+                    } else {
                         MDC.put(key, oldValue);
+                    }
                 });
     }
 

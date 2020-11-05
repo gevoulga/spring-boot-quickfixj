@@ -20,7 +20,8 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJSettingsN
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
-public class QuickFixJSettingsNotFoundFailureAnalyzer extends AbstractFailureAnalyzer<QuickFixJSettingsNotFoundException> {
+public class QuickFixJSettingsNotFoundFailureAnalyzer
+        extends AbstractFailureAnalyzer<QuickFixJSettingsNotFoundException> {
 
     @Override
     protected FailureAnalysis analyze(Throwable rootFailure, QuickFixJSettingsNotFoundException cause) {

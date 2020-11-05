@@ -190,7 +190,8 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
                 .sum();
 
         //Log a warning if nobody was notified
-        if (Objects.nonNull(message) && notifiedSinks == 0 && !FixMessageUtils.isMessageOfType(message, MsgType.LOGOUT)) {
+        if (Objects.nonNull(message) && notifiedSinks == 0 &&
+                !FixMessageUtils.isMessageOfType(message, MsgType.LOGOUT)) {
             LOG.warn("Message received could not be associated with any Request. Message: {}", message);
         }
     }
@@ -254,7 +255,8 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
     }
 
     @Override
-    public Flux<Message> sendAndSubscribe(Supplier<Message> messageSupplier, Function<Message, RefIdSelector> refIdSelectorSupplier) {
+    public Flux<Message> sendAndSubscribe(Supplier<Message> messageSupplier,
+                                          Function<Message, RefIdSelector> refIdSelectorSupplier) {
         //Send the FIX request message
         return send(messageSupplier)
                 //then

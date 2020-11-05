@@ -45,12 +45,14 @@ public class FixSessionManager implements Application {
     private final StartupLatch startupLatch;
     private final LoggingId loggingId;
 
-    public FixSessionManager(SessionSettings sessionSettings, FixConnectionType fixConnectionType, List<AbstractFixSession> sessions, StartupLatch startupLatch, LoggingId loggingId) {
+    public FixSessionManager(SessionSettings sessionSettings, FixConnectionType fixConnectionType,
+                             List<AbstractFixSession> sessions, StartupLatch startupLatch, LoggingId loggingId) {
         if (sessions.size() > 1) {
             List<String> sessionNames = sessions.stream()
                     .map(FixSessionUtils::extractFixSessionName)
                     .collect(Collectors.toList());
-            FixSessionUtils.ensureUniqueSessionNames(sessionNames, "Multiple " + FixSession.class.getSimpleName() + " beans specified for the same session name.");
+            FixSessionUtils.ensureUniqueSessionNames(sessionNames,
+                    "Multiple " + FixSession.class.getSimpleName() + " beans specified for the same session name.");
         }
         fixSessions = FixSessionUtils.stream(sessionSettings)
                 .map(sessionID -> FixSessionUtils.getFixSession(sessionSettings, sessions, sessionID))
@@ -63,7 +65,8 @@ public class FixSessionManager implements Application {
     private AbstractFixSession retrieveSession(SessionID sessionId) {
         AbstractFixSession fixSession = fixSessions.get(sessionId);
         if (Objects.isNull(fixSession)) {
-            throw new QuickFixJConfigurationException(String.format("No AbstractFixSession receiver for session [%s] ", sessionId));
+            throw new QuickFixJConfigurationException(
+                    String.format("No AbstractFixSession receiver for session [%s] ", sessionId));
         }
         return fixSession;
     }
