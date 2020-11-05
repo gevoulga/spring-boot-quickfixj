@@ -77,6 +77,11 @@ public class FixSessionTest {
         sessionManager.onLogout(sessionId);
         verify(fixSession, times(2)).error(any(SessionDroppedException.class));
 
+        //Logon (again)
+        sessionManager.fromAdmin(new Logon(), sessionId);
+        verify(fixSession).authenticate(any(Message.class));
+        verify(fixSession).loggedOn();
+
     }
 
     @TestConfiguration
