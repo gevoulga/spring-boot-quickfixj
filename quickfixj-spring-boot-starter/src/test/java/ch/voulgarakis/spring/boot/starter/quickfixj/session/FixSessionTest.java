@@ -39,8 +39,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {EmptyContext.class, FixSessionTest.FixSessionTestContext.class},
-        properties = "spring.main.allow-bean-definition-overriding=true")
+@SpringBootTest(classes = {EmptyContext.class, FixSessionTest.FixSessionTestContext.class})
 @TestPropertySource("classpath:fixSessionTest.properties")
 @DirtiesContext //Stop port already bound issues from other tests
 public class FixSessionTest {

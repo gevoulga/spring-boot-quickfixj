@@ -39,13 +39,14 @@ import static ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMess
 public class FixSessionManager implements Application {
 
     private static final Logger LOG = LoggerFactory.getLogger(FixSessionManager.class);
-    private final InternalFixSessions<AbstractFixSession> fixSessions;
+    private final InternalFixSessions<? extends AbstractFixSession> fixSessions;
     private final FixConnectionType fixConnectionType;
     private final StartupLatch startupLatch;
     private final LoggingId loggingId;
     private final AuthenticationService authenticationService;
 
-    public FixSessionManager(InternalFixSessions<AbstractFixSession> fixSessions, FixConnectionType fixConnectionType,
+    public FixSessionManager(InternalFixSessions<? extends AbstractFixSession> fixSessions,
+            FixConnectionType fixConnectionType,
             StartupLatch startupLatch, LoggingId loggingId,
             AuthenticationService authenticationService) {
         this.fixSessions = fixSessions;

@@ -18,61 +18,27 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
-import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.SessionSettingsAuthenticationService;
 import ch.voulgarakis.spring.boot.starter.quickfixj.connection.FixConnection;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.*;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingId;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.StartupLatch;
 import org.quickfixj.jmx.JmxExporter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.autoconfigure.condition.*;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ResourceLoader;
 import quickfix.*;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
-import java.time.Duration;
 import java.util.Optional;
 
 @Configuration
-@AutoConfigurationPackage
-@EnableConfigurationProperties(QuickFixJBootProperties.class)
 @ConditionalOnBean(annotation = EnableQuickFixJ.class)
 //@ConditionalOnBean(Application.class)
 //@Conditional(QuickFixJAutoConfigurationConditional.class)
 //@AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
-public class QuickFixJAutoConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean
-    public SessionSettings sessionSettings(QuickFixJBootProperties properties, Environment environment,
-            ResourceLoader resourceLoader) {
-        return FixSessionSettings.loadSettings(properties.getConfig(), environment, resourceLoader);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MessageStoreFactory messageStoreFactory() {
-        return new MemoryStoreFactory();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MessageFactory messageFactory() {
-        return new DefaultMessageFactory();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public FixConnectionType fixConnectionType(SessionSettings sessionSettings) {
-        return FixConnectionType.of(sessionSettings);
-    }
+public class QuickFixJConnectionAutoConfiguration {
 
 
     @Bean
@@ -91,39 +57,13 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public StartupLatch startupLatch(SessionSettings sessionSettings,
-            @Value("${quickfixj.startup.timeout}") Duration timeout) {
-        return new StartupLatch(sessionSettings.size(), FixConnectionType.of(sessionSettings), timeout);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
     public FixConnection fixConnection(Connector connector, StartupLatch startupLatch) {
         return new FixConnection(connector, startupLatch);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public LoggingId loggingId() {
-        return new LoggingId();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public AuthenticationService authenticationService(SessionSettings sessionSettings) {
-        return new SessionSettingsAuthenticationService(sessionSettings);
-    }
-
-//    @Bean
-//    @ConditionalOnMissingBean(InternalFixSessions.class)
-//    public FixSessions fixSessions(SessionSettings sessionSettings,
-//            List<AbstractFixSession> sessions) {
-//        return new FixSessions(sessionSettings, sessions);
-//    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public Application application(InternalFixSessions<AbstractFixSession> fixSessions,
+    public Application application(InternalFixSessions<? extends AbstractFixSession> fixSessions,
             FixConnectionType fixConnectionType, StartupLatch startupLatch, LoggingId loggingId,
             AuthenticationService authenticationService) {
         return new FixSessionManager(fixSessions, fixConnectionType, startupLatch, loggingId, authenticationService);

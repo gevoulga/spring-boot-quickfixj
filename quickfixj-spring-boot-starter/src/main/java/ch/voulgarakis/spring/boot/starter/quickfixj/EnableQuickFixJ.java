@@ -16,7 +16,7 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJAutoConfiguration;
+import ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJConnectionAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.context.annotation.Import;
 
@@ -26,7 +26,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Import(QuickFixJAutoConfiguration.class)
+@Import(QuickFixJConnectionAutoConfiguration.class)
 @AutoConfigurationPackage
 public @interface EnableQuickFixJ {
 

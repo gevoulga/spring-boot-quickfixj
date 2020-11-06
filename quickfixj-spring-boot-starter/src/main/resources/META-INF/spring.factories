@@ -1,6 +1,8 @@
 # AutoConfigurations
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJAutoConfiguration
+  ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJSessionSettingsAutoConfiguration,\
+  ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickfixJSessionsAutoConfiguration,\
+  ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJConnectionAutoConfiguration
 
 org.springframework.boot.diagnostics.FailureAnalyzer=\
   ch.voulgarakis.spring.boot.starter.quickfixj.exception.analyzer.QuickFixJConfigurationFailureAnalyzer,\
