@@ -17,6 +17,7 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
+import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.RejectException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {EmptyContext.class, FixSessionTest.FixSessionTestContext.class})
+@SpringBootTest(classes = {EmptyContext.class, FixSessionTest.FixSessionTestContext.class},
+        properties = "spring.main.allow-bean-definition-overriding=true")
 @TestPropertySource("classpath:fixSessionTest.properties")
 @DirtiesContext //Stop port already bound issues from other tests
 public class FixSessionTest {
@@ -47,6 +49,8 @@ public class FixSessionTest {
     private FixSessionManager sessionManager;
     @Autowired
     private AbstractFixSession fixSession;
+    @Autowired
+    private AuthenticationService authenticationService;
 
     @Test
     public void test() throws RejectLogon {
@@ -54,7 +58,7 @@ public class FixSessionTest {
 
         //Logon
         sessionManager.fromAdmin(new Logon(), sessionId);
-        verify(fixSession).authenticate(any(Message.class));
+        verify(authenticationService).authenticate(any(SessionID.class),any(Message.class));
         verify(fixSession).loggedOn();
 
         //Heartbeats
@@ -79,8 +83,8 @@ public class FixSessionTest {
 
         //Logon (again)
         sessionManager.fromAdmin(new Logon(), sessionId);
-        verify(fixSession).authenticate(any(Message.class));
-        verify(fixSession).loggedOn();
+        verify(authenticationService, times(2)).authenticate(any(SessionID.class),any(Message.class));
+        verify(fixSession, times(2)).loggedOn();
 
     }
 
@@ -91,6 +95,11 @@ public class FixSessionTest {
         @Bean
         public AbstractFixSession fixSession() {
             return mock(AbstractFixSession.class);
+        }
+
+        @Bean
+        public AuthenticationService authenticationService() {
+            return mock(AuthenticationService.class);
         }
     }
 

@@ -18,14 +18,14 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionMapping;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.NamedBean;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -33,37 +33,6 @@ import java.util.stream.StreamSupport;
 import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.extractSessionName;
 
 public class FixSessionUtils {
-
-    static ImmutablePair<SessionID, AbstractFixSession> getFixSession(SessionSettings sessionSettings,
-                                                                      List<AbstractFixSession> sessions,
-                                                                      SessionID sessionID) {
-        AbstractFixSession fixSession;
-        if (sessionSettings.size() == 1 && sessions.size() == 1) {
-            fixSession = sessions.get(0);
-        } else {
-            Map<String, AbstractFixSession> fixSessionMap = sessions.stream()
-                    .map(fs -> Pair.of(extractFixSessionName(fs), fs))
-                    .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
-            String sessionName = extractSessionName(sessionSettings, sessionID);
-            fixSession = fixSessionMap.entrySet().stream()
-                    .filter(e -> StringUtils.equalsIgnoreCase(sessionName, e.getKey()))
-                    .map(Map.Entry::getValue)
-                    .findFirst()
-                    .orElseThrow(() -> new QuickFixJConfigurationException(
-                            String.format("No bean found for SessionName.%s=[%s] in defined %s beans %s",
-                                    SessionSettings.class.getSimpleName(), sessionName,
-                                    FixSession.class.getSimpleName(),
-                                    extractSessionNames(sessionSettings))));
-        }
-        fixSession.setSessionId(sessionID);
-        return ImmutablePair.of(sessionID, fixSession);
-    }
-
-    public static List<String> extractSessionNames(SessionSettings sessionSettings) {
-        return stream(sessionSettings)
-                .map(sessionID -> extractSessionName(sessionSettings, sessionID))
-                .collect(Collectors.toList());
-    }
 
     public static String extractFixSessionName(AbstractFixSession fixSession) {
         FixSessionMapping[] annotationsByType = fixSession.getClass().getAnnotationsByType(FixSessionMapping.class);

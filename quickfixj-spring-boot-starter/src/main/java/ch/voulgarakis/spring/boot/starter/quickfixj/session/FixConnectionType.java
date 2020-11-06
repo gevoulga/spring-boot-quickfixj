@@ -16,6 +16,7 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import quickfix.*;
 
 public enum FixConnectionType {
@@ -34,16 +35,20 @@ public enum FixConnectionType {
         this.isAcceptor = isAcceptor;
     }
 
-    public static FixConnectionType of(SessionSettings sessionSettings) throws ConfigError, FieldConvertError {
-        String connectionType = sessionSettings.getString(SessionFactory.SETTING_CONNECTION_TYPE);
-        boolean isThreaded = sessionSettings.isSetting(CONCURRENT) && sessionSettings.getBool(CONCURRENT);
+    public static FixConnectionType of(SessionSettings sessionSettings) {
+        try {
+            String connectionType = sessionSettings.getString(SessionFactory.SETTING_CONNECTION_TYPE);
+            boolean isThreaded = sessionSettings.isSetting(CONCURRENT) && sessionSettings.getBool(CONCURRENT);
 
-        if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
-            return isThreaded ? ACCEPTOR_THREADED : ACCEPTOR;
-        } else if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
-            return isThreaded ? INITIATOR_THREADED : INITIATOR;
-        } else {
-            throw new ConfigError("Failed to determine " + SessionFactory.SETTING_CONNECTION_TYPE);
+            if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
+                return isThreaded ? ACCEPTOR_THREADED : ACCEPTOR;
+            } else if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
+                return isThreaded ? INITIATOR_THREADED : INITIATOR;
+            } else {
+                throw new ConfigError("Failed to determine " + SessionFactory.SETTING_CONNECTION_TYPE);
+            }
+        } catch (ConfigError | FieldConvertError err) {
+            throw new QuickFixJConfigurationException("Could not resolve type of Fix application.", err);
         }
     }
 
@@ -52,8 +57,8 @@ public enum FixConnectionType {
     }
 
     public Connector createConnector(Application application, MessageStoreFactory messageStoreFactory,
-                                     SessionSettings sessionSettings, LogFactory logFactory,
-                                     MessageFactory messageFactory) throws ConfigError {
+            SessionSettings sessionSettings, LogFactory logFactory,
+            MessageFactory messageFactory) throws ConfigError {
         if (isAcceptor) {
             if (isConcurrent) {
                 return new ThreadedSocketAcceptor(application, messageStoreFactory, sessionSettings, logFactory,

@@ -43,10 +43,6 @@ public class QuickFixJAutoConfigurationTestConfig {
             @Override
             protected void loggedOn() {
             }
-
-            @Override
-            protected void authenticate(Message message) {
-            }
         };
     }
 }

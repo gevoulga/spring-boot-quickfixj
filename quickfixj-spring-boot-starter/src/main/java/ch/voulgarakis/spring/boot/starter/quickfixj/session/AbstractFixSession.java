@@ -19,13 +19,11 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionInterface;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import quickfix.*;
+import quickfix.Message;
+import quickfix.Session;
+import quickfix.SessionID;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public abstract class AbstractFixSession implements FixSessionInterface {
 
@@ -46,28 +44,6 @@ public abstract class AbstractFixSession implements FixSessionInterface {
      */
     public AbstractFixSession(SessionID sessionId) {
         this.sessionId = sessionId;
-    }
-
-    /**
-     * SessionID resolved from {@link SessionSettings}.
-     *
-     * @param sessionSettings the quickfixj session settings to resolve the SessionID from.
-     */
-    public AbstractFixSession(SessionSettings sessionSettings) {
-        List<SessionID> sessionIds = FixSessionUtils.stream(sessionSettings)
-                //find the session id of this session
-                .map(sessionID -> FixSessionUtils
-                        .getFixSession(sessionSettings, Collections.singletonList(this), sessionID))
-                //return the session id
-                .map(ImmutablePair::getLeft)
-                .collect(Collectors.toList());
-        if (sessionIds.isEmpty()) {
-            throw new QuickFixJConfigurationException("No session id found");
-        } else if (sessionIds.size() > 1) {
-            throw new QuickFixJConfigurationException("Too many sessionIds found: " + sessionIds);
-        }
-
-        this.sessionId = sessionIds.get(0);
     }
 
     //--------------------------------------------------
@@ -102,30 +78,6 @@ public abstract class AbstractFixSession implements FixSessionInterface {
     //    protected abstract void sent(Message message);
 
     //--------------------------------------------------
-    //------------------AUTHENTICATION------------------
-    //--------------------------------------------------
-
-    /**
-     * Handle authentication for this session.
-     * If session is an Initiator, this should set the username & password of the session, on the Logon
-     * If session is an acceptor, this should authenticate the client based on the Logon Message.
-     *
-     * @param message in case of initiator: message where username/password should be set.
-     *                in case of accepter: the message with the credentials that should be authenticated.
-     */
-    protected abstract void authenticate(Message message) throws RejectLogon;
-
-
-    @Override
-    public SessionID getSessionId() {
-        if (Objects.nonNull(sessionId)) {
-            return sessionId;
-        } else {
-            throw new QuickFixJConfigurationException("SessionId is not set.");
-        }
-    }
-
-    //--------------------------------------------------
     //--------------------SESSION ID--------------------
     //--------------------------------------------------
     final void setSessionId(SessionID sessionID) {
@@ -133,6 +85,15 @@ public abstract class AbstractFixSession implements FixSessionInterface {
             this.sessionId = sessionID;
         } else if (!Objects.equals(sessionID, this.sessionId)) {
             throw new QuickFixJConfigurationException("Not allowed to set SessionId more than once.");
+        }
+    }
+
+    @Override
+    public SessionID getSessionId() {
+        if (Objects.nonNull(sessionId)) {
+            return sessionId;
+        } else {
+            throw new QuickFixJConfigurationException("SessionId is not set.");
         }
     }
 

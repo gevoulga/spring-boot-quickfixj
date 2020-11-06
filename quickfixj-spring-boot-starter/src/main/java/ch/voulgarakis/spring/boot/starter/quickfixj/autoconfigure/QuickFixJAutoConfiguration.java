@@ -17,6 +17,8 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
+import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
+import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.SessionSettingsAuthenticationService;
 import ch.voulgarakis.spring.boot.starter.quickfixj.connection.FixConnection;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.*;
@@ -36,11 +38,7 @@ import quickfix.*;
 import javax.management.JMException;
 import javax.management.ObjectName;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
-
-import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUtils.extractSessionNames;
-import static java.lang.String.format;
 
 @Configuration
 @AutoConfigurationPackage
@@ -54,7 +52,7 @@ public class QuickFixJAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public SessionSettings sessionSettings(QuickFixJBootProperties properties, Environment environment,
-                                           ResourceLoader resourceLoader) {
+            ResourceLoader resourceLoader) {
         return FixSessionSettings.loadSettings(properties.getConfig(), environment, resourceLoader);
     }
 
@@ -72,7 +70,7 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public FixConnectionType fixConnectionType(SessionSettings sessionSettings) throws FieldConvertError, ConfigError {
+    public FixConnectionType fixConnectionType(SessionSettings sessionSettings) {
         return FixConnectionType.of(sessionSettings);
     }
 
@@ -80,8 +78,8 @@ public class QuickFixJAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Connector connector(Application application, FixConnectionType fixConnectionType,
-                               SessionSettings sessionSettings, MessageStoreFactory messageStoreFactory,
-                               MessageFactory messageFactory, Optional<LogFactory> logFactory) {
+            SessionSettings sessionSettings, MessageStoreFactory messageStoreFactory,
+            MessageFactory messageFactory, Optional<LogFactory> logFactory) {
         try {
             return FixSessionSettings
                     .createConnector(application, fixConnectionType, messageStoreFactory, sessionSettings,
@@ -94,8 +92,7 @@ public class QuickFixJAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public StartupLatch startupLatch(SessionSettings sessionSettings,
-                                     @Value("${quickfixj.startup.timeout}") Duration timeout)
-            throws FieldConvertError, ConfigError {
+            @Value("${quickfixj.startup.timeout}") Duration timeout) {
         return new StartupLatch(sessionSettings.size(), FixConnectionType.of(sessionSettings), timeout);
     }
 
@@ -113,14 +110,23 @@ public class QuickFixJAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Application application(SessionSettings sessionSettings, FixConnectionType fixConnectionType,
-                                   List<AbstractFixSession> sessions, StartupLatch startupLatch, LoggingId loggingId) {
-        if (sessionSettings.size() != 0 && (sessions == null || sessions.isEmpty())) {
-            throw new QuickFixJConfigurationException(format(
-                    "You need to define %s beans that will handle FIX message exchange for the sessions: %s",
-                    FixSession.class.getSimpleName(), extractSessionNames(sessionSettings)));
-        }
-        return new FixSessionManager(sessionSettings, fixConnectionType, sessions, startupLatch, loggingId);
+    public AuthenticationService authenticationService(SessionSettings sessionSettings) {
+        return new SessionSettingsAuthenticationService(sessionSettings);
+    }
+
+//    @Bean
+//    @ConditionalOnMissingBean(InternalFixSessions.class)
+//    public FixSessions fixSessions(SessionSettings sessionSettings,
+//            List<AbstractFixSession> sessions) {
+//        return new FixSessions(sessionSettings, sessions);
+//    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public Application application(InternalFixSessions<AbstractFixSession> fixSessions,
+            FixConnectionType fixConnectionType, StartupLatch startupLatch, LoggingId loggingId,
+            AuthenticationService authenticationService) {
+        return new FixSessionManager(fixSessions, fixConnectionType, startupLatch, loggingId, authenticationService);
     }
 
     @Bean

@@ -16,12 +16,19 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
-import quickfix.Message;
-import quickfix.RejectLogon;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
 
-public class ReactiveTestFixSession extends ReactiveAbstractFixSession {
-    @Override
-    protected void authenticate(Message message) throws RejectLogon {
-        //Nth to do
+import java.util.List;
+
+public class ReactiveFixSessions extends InternalFixSessions<ReactiveAbstractFixSession> {
+
+    public ReactiveFixSessions(SessionSettings sessionSettings, List<ReactiveAbstractFixSession> sessions) {
+        super(sessionSettings, sessions, ReactiveAbstractFixSession::new);
+    }
+
+    public ReactiveFixSession get(SessionID sessionID) {
+        return retrieveSession(sessionID);
     }
 }

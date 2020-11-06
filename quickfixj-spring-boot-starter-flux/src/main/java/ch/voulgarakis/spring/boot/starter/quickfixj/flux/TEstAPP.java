@@ -17,16 +17,20 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@Configuration
-@EnableAutoConfiguration
+@SpringBootApplication
 @EnableQuickFixJ
-public class ReactiveFixSessionTestContext {
-    @Bean
-    public ReactiveAbstractFixSession fixSession() {
-        return new ReactiveAbstractFixSession();
+public class TEstAPP {
+
+//    @Bean
+//    public ReactiveFixSessions fixSessions(SessionSettings sessionSettings,
+//            List<ReactiveAbstractFixSession> sessions) {
+//        return new ReactiveFixSessions(sessionSettings, sessions);
+//    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(TEstAPP.class, args);
     }
 }

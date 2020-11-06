@@ -17,7 +17,10 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJException;
-import quickfix.*;
+import quickfix.Message;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
 
 public abstract class DefaultFixSession extends AbstractFixSession implements FixSession {
 
@@ -32,15 +35,6 @@ public abstract class DefaultFixSession extends AbstractFixSession implements Fi
      */
     public DefaultFixSession(SessionID sessionId) {
         super(sessionId);
-    }
-
-    /**
-     * SessionID resolved from {@link SessionSettings}.
-     *
-     * @param sessionSettings the quickfixj session settings to resolve the SessionID from.
-     */
-    public DefaultFixSession(SessionSettings sessionSettings) {
-        super(sessionSettings);
     }
 
     @Override

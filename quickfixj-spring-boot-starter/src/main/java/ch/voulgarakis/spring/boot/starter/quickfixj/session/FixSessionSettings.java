@@ -30,8 +30,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import quickfix.Dictionary;
 import quickfix.*;
-import quickfix.field.Password;
-import quickfix.field.Username;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -56,8 +54,6 @@ public class FixSessionSettings extends ResourceCondition {
     private static final String QUICKFIXJ_CONFIG = "quickfixj.cfg";
     private static final String DATA_DICTIONARY = "DataDictionary";
     private static final String SESSION_NAME = "SessionName";
-    private static final String USERNAME = "Username";
-    private static final String PASSWORD = "Password";
 
     public FixSessionSettings() {
         super("QuickFixJ Server", SYSTEM_VARIABLE_QUICKFIXJ_CONFIG,
@@ -65,7 +61,7 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     public static SessionSettings loadSettings(String userDefinedLocation, Environment environment,
-                                               ResourceLoader resourceLoader) {
+            ResourceLoader resourceLoader) {
         List<Pair<String, Boolean>> locations = Stream.of(of(userDefinedLocation, true),
                 of(System.getProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG), true),
                 of("file:./" + QUICKFIXJ_CONFIG, false),
@@ -89,7 +85,6 @@ public class FixSessionSettings extends ResourceCondition {
         }
     }
 
-
     private static Optional<Resource> loadResource(String location, boolean failIfNotFound) {
         if (location == null) {
             return empty();
@@ -109,7 +104,7 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     private static SessionSettings createSessionSettings(Environment environment, ResourceLoader resourceLoader,
-                                                         Resource resource) throws ConfigError, IOException {
+            Resource resource) throws ConfigError, IOException {
         try (InputStream inputStream = resource.getInputStream()) {
             //SessionSettings sessionSettings = new SessionSettings(inputStream);
             InputStream stream;
@@ -148,7 +143,7 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader,
-                                           SessionID sessionID) {
+            SessionID sessionID) {
         boolean isDictionaryDefined = Objects.nonNull(sessionID) ?
                 sessionSettings.isSetting(sessionID, DATA_DICTIONARY) :
                 sessionSettings.isSetting(DATA_DICTIONARY);
@@ -185,8 +180,8 @@ public class FixSessionSettings extends ResourceCondition {
     }
 
     public static Connector createConnector(Application application, FixConnectionType fixConnectionType,
-                                            MessageStoreFactory messageStoreFactory, SessionSettings sessionSettings,
-                                            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+            MessageStoreFactory messageStoreFactory, SessionSettings sessionSettings,
+            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
         return fixConnectionType
                 .createConnector(application, messageStoreFactory, sessionSettings, logFactory, messageFactory);
     }
@@ -230,21 +225,5 @@ public class FixSessionSettings extends ResourceCondition {
                 properties.getProperty(TARGETSUBID, NOT_SET),
                 properties.getProperty(TARGETLOCID, NOT_SET),
                 properties.getProperty(SESSION_QUALIFIER, NOT_SET));
-    }
-
-    public static Message authenticate(SessionSettings sessionSettings, SessionID sessionID, Message message) {
-        try {
-            String username = sessionSettings.getString(sessionID, USERNAME);
-            message.setField(new Username(username));
-        } catch (ConfigError configError) {
-            throw new QuickFixJConfigurationException("Failed to get Username from properties.", configError);
-        }
-        try {
-            String password = sessionSettings.getString(sessionID, PASSWORD);
-            message.setField(new Password(password));
-        } catch (ConfigError configError) {
-            throw new QuickFixJConfigurationException("Failed to get Password from properties.", configError);
-        }
-        return message;
     }
 }

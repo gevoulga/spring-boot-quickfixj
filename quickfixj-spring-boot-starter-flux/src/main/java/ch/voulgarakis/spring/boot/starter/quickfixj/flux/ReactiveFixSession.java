@@ -63,6 +63,6 @@ public interface ReactiveFixSession extends FixSessionInterface {
      * @return the Flux of fix messages received by the session associated with the request message.
      */
     Flux<Message> sendAndSubscribe(Supplier<Message> messageSupplier,
-                                   Function<Message, RefIdSelector> refIdSelectorSupplier);
+            Function<Message, RefIdSelector> refIdSelectorSupplier);
 
 }

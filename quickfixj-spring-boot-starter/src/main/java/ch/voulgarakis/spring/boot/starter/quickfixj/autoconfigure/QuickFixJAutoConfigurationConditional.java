@@ -42,7 +42,7 @@ public class QuickFixJAutoConfigurationConditional implements ConfigurationCondi
     }
 
     private BeanDefinition findBeanDefinition(ConfigurableListableBeanFactory beanFactory, String beanName,
-                                              boolean considerHierarchy) {
+            boolean considerHierarchy) {
         if (beanFactory.containsBeanDefinition(beanName)) {
             return beanFactory.getBeanDefinition(beanName);
         }

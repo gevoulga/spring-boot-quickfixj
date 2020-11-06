@@ -77,10 +77,6 @@ public class QuickfixjApplicationTest {
                 @Override
                 protected void loggedOn() {
                 }
-
-                @Override
-                protected void authenticate(Message message) {
-                }
             };
         }
     }

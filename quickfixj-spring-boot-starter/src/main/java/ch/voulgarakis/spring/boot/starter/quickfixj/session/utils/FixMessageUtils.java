@@ -197,19 +197,19 @@ public class FixMessageUtils {
     }
 
     public static List<LocalTime> safeGetFieldFromGroup(FieldMap group, int field,
-                                                        UtcTimeOnlyField utcTimeOnlyField) {
+            UtcTimeOnlyField utcTimeOnlyField) {
         return group.getGroups(field).stream().map(gr -> safeGetField(gr, utcTimeOnlyField)).flatMap(
                 o -> o.map(Stream::of).orElseGet(Stream::empty)).collect(Collectors.toList());
     }
 
     public static List<LocalDate> safeGetFieldFromGroup(FieldMap group, int field,
-                                                        UtcDateOnlyField utcDateOnlyField) {
+            UtcDateOnlyField utcDateOnlyField) {
         return group.getGroups(field).stream().map(gr -> safeGetField(gr, utcDateOnlyField)).flatMap(
                 o -> o.map(Stream::of).orElseGet(Stream::empty)).collect(Collectors.toList());
     }
 
     public static List<Instant> safeGetFieldFromGroup(FieldMap group, int field,
-                                                      UtcTimeStampField utcTimeStampField) {
+            UtcTimeStampField utcTimeStampField) {
         return group.getGroups(field).stream().map(gr -> safeGetField(gr, utcTimeStampField)).flatMap(
                 o -> o.map(Stream::of).orElseGet(Stream::empty)).collect(Collectors.toList());
     }

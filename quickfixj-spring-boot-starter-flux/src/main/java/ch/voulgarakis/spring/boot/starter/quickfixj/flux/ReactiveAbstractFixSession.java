@@ -29,7 +29,10 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import quickfix.*;
+import quickfix.Message;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
 import quickfix.field.MsgType;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
@@ -48,7 +51,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public abstract class ReactiveAbstractFixSession extends AbstractFixSession implements ReactiveFixSession {
+public class ReactiveAbstractFixSession extends AbstractFixSession implements ReactiveFixSession {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReactiveAbstractFixSession.class);
 
@@ -78,15 +81,6 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
      */
     public ReactiveAbstractFixSession(SessionID sessionId) {
         super(sessionId);
-    }
-
-    /**
-     * SessionID resolved from {@link SessionSettings}.
-     *
-     * @param sessionSettings the quickfixj session settings to resolve the SessionID from.
-     */
-    public ReactiveAbstractFixSession(SessionSettings sessionSettings) {
-        super(sessionSettings);
     }
 
     //--------------------------------------------------
@@ -256,7 +250,7 @@ public abstract class ReactiveAbstractFixSession extends AbstractFixSession impl
 
     @Override
     public Flux<Message> sendAndSubscribe(Supplier<Message> messageSupplier,
-                                          Function<Message, RefIdSelector> refIdSelectorSupplier) {
+            Function<Message, RefIdSelector> refIdSelectorSupplier) {
         //Send the FIX request message
         return send(messageSupplier)
                 //then

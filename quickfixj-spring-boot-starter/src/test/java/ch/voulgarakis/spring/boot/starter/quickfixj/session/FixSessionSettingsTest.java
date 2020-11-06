@@ -31,6 +31,8 @@ import quickfix.Message;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
+import java.util.Collections;
+
 import static junit.framework.TestCase.assertEquals;
 
 @ExtendWith(SpringExtension.class)
@@ -75,7 +77,7 @@ public class FixSessionSettingsTest {
 
     @Test
     public void testCreateSession() {
-        AbstractFixSession abstractFixSession = new AbstractFixSession(sessionSettings) {
+        AbstractFixSession abstractFixSession = new AbstractFixSession() {
 
             @Override
             protected void received(Message message) {
@@ -92,12 +94,9 @@ public class FixSessionSettingsTest {
             protected void loggedOn() {
                 //nth to do
             }
-
-            @Override
-            protected void authenticate(Message message) {
-                //nth to do
-            }
         };
+
+        new FixSessions(sessionSettings, Collections.singletonList(abstractFixSession));
 
         assertEquals(abstractFixSession.getSessionId(), new SessionID("FIX.4.3", "TEST_CLIENT", "FIX"));
     }
