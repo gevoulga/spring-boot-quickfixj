@@ -179,13 +179,6 @@ public class FixSessionSettings extends ResourceCondition {
         }
     }
 
-    public static Connector createConnector(Application application, FixConnectionType fixConnectionType,
-            MessageStoreFactory messageStoreFactory, SessionSettings sessionSettings,
-            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
-        return fixConnectionType
-                .createConnector(application, messageStoreFactory, sessionSettings, logFactory, messageFactory);
-    }
-
     static String extractSessionName(SessionSettings sessionSettings, SessionID sessionID) {
         try {
             if (sessionSettings.isSetting(sessionID, SESSION_NAME)) {

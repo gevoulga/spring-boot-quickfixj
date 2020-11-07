@@ -33,6 +33,7 @@ import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUti
  */
 public class InternalFixSessions<T extends AbstractFixSession> {
     protected final Map<SessionID, T> fixSessions;
+    protected final Map<String, SessionID> nameToSessionId;
 
 
     public InternalFixSessions(SessionSettings sessionSettings, List<T> sessions,
@@ -48,7 +49,8 @@ public class InternalFixSessions<T extends AbstractFixSession> {
 
         if (sessionSettings.size() == 0) {
             if (sessions.isEmpty()) {
-                fixSessions = new HashMap<>();
+                fixSessions = Collections.emptyMap();
+                nameToSessionId = Collections.emptyMap();
             } else {
                 throw new QuickFixJConfigurationException("No session found in quickfixj session settings.");
             }
@@ -57,6 +59,7 @@ public class InternalFixSessions<T extends AbstractFixSession> {
         else if (sessionSettings.size() == 1) {
             List<SessionID> sessionIDS = FixSessionUtils.stream(sessionSettings).collect(Collectors.toList());
             SessionID sessionID = sessionIDS.get(0);
+            String sessionName = extractSessionName(sessionSettings, sessionID);
 
             T fixSession;
             //One session bean defined
@@ -69,16 +72,15 @@ public class InternalFixSessions<T extends AbstractFixSession> {
             }
             //Invalid
             else {
-                throw new QuickFixJConfigurationException(
-                        "Multiple " + FixSession.class.getSimpleName() + " beans specified for the same session: " +
-                                extractSessionName(sessionSettings, sessionID));
+                throw new QuickFixJConfigurationException("Multiple " + FixSession.class.getSimpleName()
+                        + " beans specified for the same session: " + sessionName);
             }
 
             //Set the sessionId in the fixSession
             fixSession.setSessionId(sessionID);
             //Store the session in the map
-            fixSessions = new HashMap<>();
-            fixSessions.put(sessionID, fixSession);
+            fixSessions = Collections.singletonMap(sessionID, fixSession);
+            nameToSessionId = Collections.singletonMap(sessionName, sessionID);
         }
         // More than one sessions have been declared
         else {
@@ -87,10 +89,12 @@ public class InternalFixSessions<T extends AbstractFixSession> {
                     .map(fs -> Pair.of(extractFixSessionName(fs), fs))
                     .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
 
+            nameToSessionId = new HashMap<>();
             fixSessions = FixSessionUtils.stream(sessionSettings)
                     .map(sessionID -> {
                         //Get the name of the session
                         String sessionName = extractSessionName(sessionSettings, sessionID);
+                        nameToSessionId.put(sessionName, sessionID);
                         //Try to find the session with the given name in the map
                         T fixSession = Optional.ofNullable(fixNameSessionMap.remove(sessionName))
                                 //Or create a new one!
@@ -100,11 +104,12 @@ public class InternalFixSessions<T extends AbstractFixSession> {
                         return fixSession;
                     })
                     .collect(Collectors.toMap(AbstractFixSession::getSessionId, Function.identity()));
-        }
-    }
 
-    protected InternalFixSessions(Map<SessionID, T> fixSessions) {
-        this.fixSessions = fixSessions;
+            if (!fixNameSessionMap.isEmpty()) {
+                throw new QuickFixJConfigurationException(
+                        "No session settings defined for FIX session beans: " + fixNameSessionMap.keySet());
+            }
+        }
     }
 
     protected T retrieveSession(SessionID sessionId) {

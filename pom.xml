@@ -21,6 +21,7 @@
         <module>quickfixj-spring-boot-starter</module>
         <module>quickfixj-spring-boot-actuator</module>
         <module>quickfixj-spring-boot-starter-flux</module>
+        <module>quickfixj-spring-boot-example</module>
     </modules>
 
     <properties>

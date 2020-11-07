@@ -17,36 +17,51 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
+
+import java.time.Duration;
 
 
-//@Configuration
-@ConfigurationProperties(prefix = QuickFixJBootProperties.PROPERTY_PREFIX)
+@ConfigurationProperties("quickfixj")
+@ConstructorBinding //Makes our properties Immutable
 public class QuickFixJBootProperties {
-
-    static final String PROPERTY_PREFIX = "quickfixj";
 
     /**
      * Whether to register the Jmx MBeans.
      */
-    private boolean jmxEnabled = false;
+    private final boolean jmxEnabled;
     /**
      * The location of the configuration file to use to initialize QuickFixJ.
      */
-    private String config;
+    private final String config;
+
+    /**
+     * The maximum time to wait (spring-context startup) until the connection is established successfully.
+     * <p>
+     * In case of initiator: max time to wait until connected & loggedOn to FIX session(s).
+     * In case of acceptor: max time to wait until FIX session(s) is/are created.
+     * <p>
+     * If session has not been established, spring startup fails.
+     * If null(not defined), no startup timeout is applied.
+     */
+//    @DurationUnit(ChronoUnit.SECONDS)
+    private final Duration startupTimeout;
+
+    public QuickFixJBootProperties(boolean jmxEnabled, String config, Duration startupTimeout) {
+        this.jmxEnabled = jmxEnabled;
+        this.config = config;
+        this.startupTimeout = startupTimeout;
+    }
 
     public boolean isJmxEnabled() {
         return jmxEnabled;
     }
 
-    public void setJmxEnabled(boolean jmxEnabled) {
-        this.jmxEnabled = jmxEnabled;
-    }
-
-    String getConfig() {
+    public String getConfig() {
         return config;
     }
 
-    public void setConfig(String config) {
-        this.config = config;
+    public Duration getStartupTimeout() {
+        return startupTimeout;
     }
 }

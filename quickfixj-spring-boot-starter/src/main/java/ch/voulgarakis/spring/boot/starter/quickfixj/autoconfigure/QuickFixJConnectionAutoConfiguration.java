@@ -20,7 +20,10 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
 import ch.voulgarakis.spring.boot.starter.quickfixj.connection.FixConnection;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.*;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixConnectionType;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionManager;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingId;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.StartupLatch;
 import org.quickfixj.jmx.JmxExporter;
@@ -45,14 +48,10 @@ public class QuickFixJConnectionAutoConfiguration {
     @ConditionalOnMissingBean
     public Connector connector(Application application, FixConnectionType fixConnectionType,
             SessionSettings sessionSettings, MessageStoreFactory messageStoreFactory,
-            MessageFactory messageFactory, Optional<LogFactory> logFactory) {
-        try {
-            return FixSessionSettings
-                    .createConnector(application, fixConnectionType, messageStoreFactory, sessionSettings,
-                            logFactory.orElse(null), messageFactory);
-        } catch (ConfigError configError) {
-            throw new QuickFixJConfigurationException(configError.getMessage(), configError);
-        }
+            MessageFactory messageFactory, Optional<LogFactory> logFactory) throws ConfigError {
+        return fixConnectionType
+                .createConnector(application, messageStoreFactory, sessionSettings, logFactory.orElse(null),
+                        messageFactory);
     }
 
     @Bean

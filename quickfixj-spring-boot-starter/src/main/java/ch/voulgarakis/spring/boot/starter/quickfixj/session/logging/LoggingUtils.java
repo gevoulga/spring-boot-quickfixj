@@ -16,11 +16,25 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session.logging;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public final class LoggingUtils {
+public class LoggingUtils {
+
+    //This can be used in a logging framework to print the associated id in the log pattern
+    public static final String ID = "id";
+
+    public static LoggingContext loggingContext(String id) {
+        return loggingContext(ID, id);
+    }
+
+    public static LoggingContext loggingContext() {
+        return loggingContext(getContext());
+    }
 
     public static LoggingContext loggingContext(String key, String value) {
         return new LoggingContext(Collections.singletonMap(key, value));
@@ -29,6 +43,11 @@ public final class LoggingUtils {
     public static LoggingContext loggingContext(Map<String, String> context) {
         return new LoggingContext(context);
     }
+
+    public static Runnable withLoggingContext(Runnable runnable) {
+        return withLoggingContext(getContext(), runnable);
+    }
+
 
     public static Runnable withLoggingContext(Map<String, String> context, Runnable runnable) {
         return () -> {
@@ -39,6 +58,10 @@ public final class LoggingUtils {
         };
     }
 
+    public static <T> Callable<T> withLoggingContext(Callable<T> callable) {
+        return withLoggingContext(getContext(), callable);
+    }
+
     public static <T> Callable<T> withLoggingContext(Map<String, String> context, Callable<T> callable) {
         return () -> {
             // And this is called in the new thread already, so here we are updating id in the new context:
@@ -46,5 +69,14 @@ public final class LoggingUtils {
                 return callable.call();
             }
         };
+    }
+
+    protected static Map<String, String> getContext() {
+        String id = MDC.get(ID);
+        if (StringUtils.isNotBlank(id)) {
+            return Collections.singletonMap(ID, id);
+        } else {
+            return Collections.emptyMap();
+        }
     }
 }

@@ -20,18 +20,9 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingConte
 import reactor.util.context.Context;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-public final class LoggingUtils {
-
-    public static LoggingContext loggingContext(String key, String value) {
-        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils.loggingContext(key, value);
-    }
-
-    public static LoggingContext loggingContext(Map<String, String> context) {
-        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils.loggingContext(context);
-    }
+public final class LoggingUtils extends ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils {
 
     public static LoggingContext loggingContext(Context context) {
         Map<String, String> ctx = context.stream()
@@ -39,14 +30,8 @@ public final class LoggingUtils {
         return loggingContext(ctx);
     }
 
-    public static Runnable withLoggingContext(Map<String, String> context, Runnable runnable) {
-        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils
-                .withLoggingContext(context, runnable);
-    }
-
-    public static <T> Callable<T> withLoggingContext(Map<String, String> context, Callable<T> callable) {
-        return ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingUtils
-                .withLoggingContext(context, callable);
+    public static Context withLoggingContext() {
+        return withLoggingContext(getContext());
     }
 
     public static Context withLoggingContext(LoggingContext loggingContext) {

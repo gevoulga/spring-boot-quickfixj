@@ -25,20 +25,21 @@ public enum FixConnectionType {
     INITIATOR(false, false),
     INITIATOR_THREADED(true, false);
 
-    private static final String CONCURRENT = "Concurrent";
+    private static final String THREADED = "Threaded";
 
-    private final boolean isConcurrent;
+    private final boolean isThreaded;
     private final boolean isAcceptor;
 
-    FixConnectionType(boolean isConcurrent, boolean isAcceptor) {
-        this.isConcurrent = isConcurrent;
+    FixConnectionType(boolean isThreaded, boolean isAcceptor) {
+        this.isThreaded = isThreaded;
         this.isAcceptor = isAcceptor;
     }
 
     public static FixConnectionType of(SessionSettings sessionSettings) {
         try {
             String connectionType = sessionSettings.getString(SessionFactory.SETTING_CONNECTION_TYPE);
-            boolean isThreaded = sessionSettings.isSetting(CONCURRENT) && sessionSettings.getBool(CONCURRENT);
+            //By default create a threaded connector
+            boolean isThreaded = !sessionSettings.isSetting(THREADED) || sessionSettings.getBool(THREADED);
 
             if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
                 return isThreaded ? ACCEPTOR_THREADED : ACCEPTOR;
@@ -60,7 +61,7 @@ public enum FixConnectionType {
             SessionSettings sessionSettings, LogFactory logFactory,
             MessageFactory messageFactory) throws ConfigError {
         if (isAcceptor) {
-            if (isConcurrent) {
+            if (isThreaded) {
                 return new ThreadedSocketAcceptor(application, messageStoreFactory, sessionSettings, logFactory,
                         messageFactory);
             } else {
@@ -68,7 +69,7 @@ public enum FixConnectionType {
                         messageFactory);
             }
         } else {
-            if (isConcurrent) {
+            if (isThreaded) {
                 return new ThreadedSocketInitiator(application, messageStoreFactory, sessionSettings, logFactory,
                         messageFactory);
             } else {

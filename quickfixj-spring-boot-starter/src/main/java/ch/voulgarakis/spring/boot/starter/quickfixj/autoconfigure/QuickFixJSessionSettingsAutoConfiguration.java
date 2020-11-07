@@ -23,7 +23,6 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixConnectionType;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingId;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.StartupLatch;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -34,12 +33,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import quickfix.*;
 
-import java.time.Duration;
-
 @Configuration
 @AutoConfigurationPackage
 @ConditionalOnBean(annotation = EnableQuickFixJ.class)
 @EnableConfigurationProperties(QuickFixJBootProperties.class)
+//@ConfigurationPropertiesScan
 public class QuickFixJSessionSettingsAutoConfiguration {
 
     @Bean
@@ -57,9 +55,9 @@ public class QuickFixJSessionSettingsAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public StartupLatch startupLatch(SessionSettings sessionSettings,
-            @Value("${quickfixj.startup.timeout}") Duration timeout) {
-        return new StartupLatch(sessionSettings.size(), FixConnectionType.of(sessionSettings), timeout);
+    public StartupLatch startupLatch(SessionSettings sessionSettings, FixConnectionType fixConnectionType,
+            QuickFixJBootProperties quickFixJBootProperties) {
+        return new StartupLatch(sessionSettings.size(), fixConnectionType, quickFixJBootProperties.getStartupTimeout());
     }
 
     @Bean

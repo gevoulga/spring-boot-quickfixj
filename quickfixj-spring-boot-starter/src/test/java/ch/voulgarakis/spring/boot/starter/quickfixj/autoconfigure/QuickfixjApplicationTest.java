@@ -41,7 +41,7 @@ import static org.awaitility.Awaitility.await;
         properties = {
                 "quickfixj.config=classpath:quickfixj.cfg",
                 "quickfixj.jmx-enabled=false",
-                "quickfixj.startup.timeout="
+                "quickfixj.startup-timeout="
         })
 @DirtiesContext //Stop port already bound issues from other tests
 public class QuickfixjApplicationTest {
