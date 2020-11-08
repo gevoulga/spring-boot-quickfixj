@@ -18,22 +18,53 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJException;
+import org.apache.commons.lang3.StringUtils;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUtils.extractFixSessionName;
+
 public class FixSessions extends InternalFixSessions<AbstractFixSession> {
 
     public FixSessions(SessionSettings sessionSettings, List<AbstractFixSession> sessions) {
-        super(sessionSettings, sessions, (sessionName, sessionID) -> {
+        super(sessionSettings, (sessionName, sessionID) -> {
+            if (sessions.size() == 1) {
+                return sessions.get(0);
+            }
+
+            List<AbstractFixSession> sessionsMatching = sessions.stream()
+                    .filter(session -> {
+                        String ssessionName = extractFixSessionName(session);
+                        return StringUtils.equalsIgnoreCase(ssessionName, sessionName);
+                    })
+                    .collect(Collectors.toList());
+
+            if (sessionsMatching.isEmpty()) {
+                throw new QuickFixJConfigurationException(
+                        "Could not find a session with name [" + sessionName + "]");
+            } else if (sessionsMatching.size() > 1) {
+                throw new QuickFixJConfigurationException(
+                        "More than one sessions found for [" + sessionName + "]");
+            }
+            return sessionsMatching.get(0);
+        });
+
+        //Ensure unique names for sessions
+        if (sessions.size() > 1) {
             List<String> sessionNames = sessions.stream()
                     .map(FixSessionUtils::extractFixSessionName)
                     .collect(Collectors.toList());
-            throw new QuickFixJConfigurationException(
-                    "Could not find a session with name [" + sessionName + "] in sessions: " + sessionNames);
-        });
+            FixSessionUtils.ensureUniqueSessionNames(sessionNames,
+                    "Multiple " + FixSession.class.getSimpleName() + " beans specified for the same session name.");
+        }
+
+        //Make sure there's a session mapping to session settings
+        if (sessionSettings.size() != 0 && sessions.isEmpty()) {
+            throw new QuickFixJConfigurationException("No session found in quickfixj session settings.");
+        }
     }
 
     public FixSession get(SessionID sessionID) {

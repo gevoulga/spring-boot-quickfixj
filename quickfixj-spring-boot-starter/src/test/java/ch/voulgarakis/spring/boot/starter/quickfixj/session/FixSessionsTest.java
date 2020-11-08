@@ -16,6 +16,7 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FixSessionsTest {
 
@@ -57,7 +58,7 @@ class FixSessionsTest {
             }
         };
 
-        assertNull(defaultFixSession.getSessionId());
+        assertThrows(QuickFixJConfigurationException.class, defaultFixSession::getSessionId);
 
         //Add the Fix Session bean into the registry (fix Sessions)
         FixSessions fixSessions = new FixSessions(sessionSettings, Collections.singletonList(defaultFixSession));

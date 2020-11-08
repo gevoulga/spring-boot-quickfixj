@@ -16,7 +16,6 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session.settings;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.EmptyContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,12 +43,28 @@ class LiveSessionSettingsTest {
 
     @TestConfiguration
     @EnableAutoConfiguration
-    @EnableQuickFixJ
     static class LiveSessionSettingsTestContext {
 //        @Bean
 //        public SessionSettings sessionSettings(Environment environment, ResourceLoader resourceLoader) {
 //            return FixSessionSettings
 //                    .loadSettings("classpath:quickfixj.cfg", environment, resourceLoader);
+//        }
+
+//        @Bean("TEST_SESSION")
+//        public FixSession fixSession() {
+//            return new DefaultFixSession() {
+//                @Override
+//                protected void received(Message message) {
+//                }
+//
+//                @Override
+//                protected void error(SessionException message) {
+//                }
+//
+//                @Override
+//                protected void loggedOn() {
+//                }
+//            };
 //        }
     }
 }

@@ -26,16 +26,14 @@ import org.springframework.context.support.GenericApplicationContext;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
-import java.util.List;
 import java.util.Objects;
 
 public class ReactiveFixSessions extends InternalFixSessions<ReactiveFixSessionImpl> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReactiveFixSessions.class);
 
-    public ReactiveFixSessions(GenericApplicationContext applicationContext, SessionSettings sessionSettings,
-            List<ReactiveFixSessionImpl> sessions) {
-        super(sessionSettings, sessions, (sessionName, sessionID) -> {
+    public ReactiveFixSessions(GenericApplicationContext applicationContext, SessionSettings sessionSettings) {
+        super(sessionSettings, (sessionName, sessionID) -> {
             if (!applicationContext.containsBean(sessionName)) {
                 //We do not use "new ReactiveAbstractFixSession(sessionID)" directly.
                 // Instead we create the reactive fix session bean definition.

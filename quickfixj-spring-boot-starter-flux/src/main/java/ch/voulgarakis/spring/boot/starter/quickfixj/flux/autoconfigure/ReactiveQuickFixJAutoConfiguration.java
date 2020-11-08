@@ -19,7 +19,6 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.flux.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickfixJSessionsAutoConfiguration;
-import ch.voulgarakis.spring.boot.starter.quickfixj.flux.ReactiveFixSessionImpl;
 import ch.voulgarakis.spring.boot.starter.quickfixj.flux.ReactiveFixSessions;
 import ch.voulgarakis.spring.boot.starter.quickfixj.flux.logging.ReactiveMdcContextConfiguration;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
@@ -33,8 +32,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 import quickfix.SessionSettings;
 
-import java.util.List;
-
 @Configuration
 @AutoConfigurationPackage
 @ConditionalOnBean(annotation = EnableQuickFixJ.class)
@@ -47,8 +44,8 @@ public class ReactiveQuickFixJAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(InternalFixSessions.class)
     public ReactiveFixSessions fixSessions(GenericApplicationContext applicationContext,
-            SessionSettings sessionSettings, List<ReactiveFixSessionImpl> sessions) {
-        return new ReactiveFixSessions(applicationContext, sessionSettings, sessions);
+            SessionSettings sessionSettings) {
+        return new ReactiveFixSessions(applicationContext, sessionSettings);
     }
 
 //    @Bean

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
@@ -51,10 +52,11 @@ import java.util.stream.Collectors;
 public class ReactiveFixSessionTest {
     private static final Logger LOG = LoggerFactory.getLogger(ReactiveFixSessionTest.class);
 
-    private static final SessionID SESSION_ID = new SessionID("FIX.4.3", "TEST_CLIENT", "FIX");
+    private static final SessionID SESSION_ID = new SessionID("FIX.4.3", "TEST_CLIENT2", "FIX");
     @Autowired
     private FixSessionManager sessionManager;
     @Autowired
+    @Qualifier("TEST2")
     private ReactiveFixSessionImpl fixSession;
 
     @Test
