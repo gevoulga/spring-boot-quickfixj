@@ -18,8 +18,10 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.convert.DurationUnit;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 
 @ConfigurationProperties("quickfixj")
@@ -44,13 +46,19 @@ public class QuickFixJBootProperties {
      * If session has not been established, spring startup fails.
      * If null(not defined), no startup timeout is applied.
      */
-//    @DurationUnit(ChronoUnit.SECONDS)
+    @DurationUnit(ChronoUnit.SECONDS)
     private final Duration startupTimeout;
 
-    public QuickFixJBootProperties(boolean jmxEnabled, String config, Duration startupTimeout) {
+    /**
+     * Monitor the quickfixj configuration file, and pick-up/apply changes on the fly.
+     */
+    private final boolean configLive;
+
+    public QuickFixJBootProperties(boolean jmxEnabled, String config, Duration startupTimeout, boolean configLive) {
         this.jmxEnabled = jmxEnabled;
         this.config = config;
         this.startupTimeout = startupTimeout;
+        this.configLive = configLive;
     }
 
     public boolean isJmxEnabled() {

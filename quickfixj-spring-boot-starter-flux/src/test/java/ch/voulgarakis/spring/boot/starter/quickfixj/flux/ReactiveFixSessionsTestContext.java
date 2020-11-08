@@ -18,10 +18,23 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableAutoConfiguration
 @EnableQuickFixJ
-public class ReactiveFixSessionTestContext {
+public class ReactiveFixSessionsTestContext {
+//    @Bean
+//    public ReactiveFixSessions reactiveFixSessions(GenericApplicationContext applicationContext)
+//            throws ConfigError {
+//        List<ReactiveAbstractFixSession> sessions = Collections.emptyList();
+//        SessionSettings sessionSettings = new SessionSettings("quickfixj.cfg");
+//        return new ReactiveFixSessions(applicationContext, sessionSettings, sessions);
+//    }
+
+    @Bean("TEST3")
+    public ReactiveFixSession test3() {
+        return new ReactiveFixSessionImpl();
+    }
 }

@@ -1,5 +1,3 @@
 # AutoConfigurations
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   ch.voulgarakis.spring.boot.starter.quickfixj.flux.autoconfigure.ReactiveQuickFixJAutoConfiguration
-
-

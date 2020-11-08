@@ -33,9 +33,11 @@ public class SessionSettingsAuthenticationService implements AuthenticationServi
     private static final String PASSWORD = "Password";
 
     private final SessionSettings sessionSettings;
+    private final FixConnectionType fixConnectionType;
 
-    public SessionSettingsAuthenticationService(SessionSettings sessionSettings) {
+    public SessionSettingsAuthenticationService(SessionSettings sessionSettings, FixConnectionType fixConnectionType) {
         this.sessionSettings = sessionSettings;
+        this.fixConnectionType = fixConnectionType;
     }
 
     /**
@@ -50,13 +52,12 @@ public class SessionSettingsAuthenticationService implements AuthenticationServi
      */
     @Override
     public void authenticate(SessionID sessionID, Message message) throws RejectLogon {
-        FixConnectionType fixConnectionType = FixConnectionType.of(sessionSettings);
-        authenticate(sessionSettings, sessionID, message, fixConnectionType, USERNAME, new Username());
-        authenticate(sessionSettings, sessionID, message, fixConnectionType, PASSWORD, new Password());
+        authenticate(sessionID, message, USERNAME, new Username());
+        authenticate(sessionID, message, PASSWORD, new Password());
     }
 
-    private void authenticate(SessionSettings sessionSettings, SessionID sessionID, Message message,
-            FixConnectionType fixConnectionType, String sessionSettingsProperty, StringField field) throws RejectLogon {
+    private void authenticate(SessionID sessionID, Message message, String sessionSettingsProperty, StringField field)
+            throws RejectLogon {
         try {
             String value = sessionSettings.getString(sessionID, sessionSettingsProperty);
             //This is a FIX server, compare the credentials from fix message and session settings

@@ -16,12 +16,24 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.NamedBean;
+import quickfix.SessionID;
 
-@Configuration
-@EnableAutoConfiguration
-@EnableQuickFixJ
-public class ReactiveFixSessionTestContext {
+public class NamedReactiveFixSessionImpl extends ReactiveFixSessionImpl implements NamedBean {
+
+    private final String sessionName;
+
+    public NamedReactiveFixSessionImpl(String sessionName, SessionID sessionId) {
+        super(sessionId);
+        this.sessionName = sessionName;
+    }
+
+    public NamedReactiveFixSessionImpl(String sessionName) {
+        this.sessionName = sessionName;
+    }
+
+    @Override
+    public String getBeanName() {
+        return sessionName;
+    }
 }

@@ -16,55 +16,21 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJSettingsNotFoundException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import quickfix.Message;
+import quickfix.ConfigError;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
-import java.util.Collections;
-
+import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.SYSTEM_VARIABLE_QUICKFIXJ_CONFIG;
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {EmptyContext.class, FixSessionSettingsTest.FixSessionSettingsTestContext.class},
-        properties = {
-                "port=0",
-                "sender.compId=TEST_CLIENT",
-                "target.compId=FIX"
-        })
 public class FixSessionSettingsTest {
 
-    @Autowired
-    private SessionSettings sessionSettings;
-    @Autowired
-    private Environment environment;
-    @Autowired
-    private ResourceLoader resourceLoader;
-
     @Test
-    public void testLoadSettings() {
-        SessionSettings actual = FixSessionSettings
-                .loadSettings("classpath:quickfixj-with-placeholders.cfg", environment, resourceLoader);
-
-        assertEquals(sessionSettings.toString(), actual.toString());
-    }
-
-    @Test
-    public void testCreateConnector() {
-    }
-
-    @Test
-    public void testExtractSessionName() {
+    public void testExtractSessionName() throws ConfigError {
+        SessionSettings sessionSettings = new SessionSettings("quickfixj.cfg");
         String sessionName = FixSessionSettings
                 .extractSessionName(sessionSettings, new SessionID("FIX.4.3", "TEST_CLIENT", "FIX"));
 
@@ -72,42 +38,20 @@ public class FixSessionSettingsTest {
     }
 
     @Test
-    public void testAuthenticate() {
-    }
+    void findQuickfixjConfig() {
+        //Should be OK
+        FixSessionSettings.findQuickfixjConfig("classpath:quickfixj.cfg");
 
-    @Test
-    public void testCreateSession() {
-        AbstractFixSession abstractFixSession = new AbstractFixSession() {
+        //Should still be OK
+        System.setProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG, "classpath:quickfixj-with-placeholders.cfg");
+        FixSessionSettings.findQuickfixjConfig(null);
 
-            @Override
-            protected void received(Message message) {
-                //nth to do
-            }
+        //Should fail (invalid specified file)
+        assertThrows(QuickFixJSettingsNotFoundException.class, () ->
+                FixSessionSettings.findQuickfixjConfig("classpath:quickfixj-does-not-exist.cfg"));
 
-
-            @Override
-            protected void error(SessionException message) {
-                //nth to do
-            }
-
-            @Override
-            protected void loggedOn() {
-                //nth to do
-            }
-        };
-
-        new FixSessions(sessionSettings, Collections.singletonList(abstractFixSession));
-
-        assertEquals(abstractFixSession.getSessionId(), new SessionID("FIX.4.3", "TEST_CLIENT", "FIX"));
-    }
-
-    @TestConfiguration
-    @EnableAutoConfiguration
-    static class FixSessionSettingsTestContext {
-        @Bean
-        public SessionSettings sessionSettings(Environment environment, ResourceLoader resourceLoader) {
-            return FixSessionSettings
-                    .loadSettings("classpath:quickfixj.cfg", environment, resourceLoader);
-        }
+        //Nothing specified, should be OK
+        System.clearProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG);
+        FixSessionSettings.findQuickfixjConfig(null);
     }
 }

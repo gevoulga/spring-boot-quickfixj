@@ -18,10 +18,10 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.connection;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJSettingsNotFoundException;
 import org.junit.jupiter.api.Test;
-import quickfix.SessionSettings;
+import org.springframework.core.io.Resource;
 
 import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.SYSTEM_VARIABLE_QUICKFIXJ_CONFIG;
-import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.loadSettings;
+import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.findQuickfixjConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -29,15 +29,15 @@ public class FixSessionSettingsTest {
 
     @Test
     public void shouldLoadDefaultFromSystemProperty() {
-        SessionSettings settings = loadSettings("classpath:quickfixj.cfg", null, null);
-        assertThat(settings).isNotNull();
+        Resource resource = findQuickfixjConfig("classpath:quickfixj.cfg");
+        assertThat(resource).isNotNull();
     }
 
     @Test
     public void shouldThrowSettingsNotFoundExceptionIfNoneFound() {
         assertThrows(QuickFixJSettingsNotFoundException.class, () -> {
             System.setProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG, "crapI.cfg");
-            loadSettings(null, null, null);
+            findQuickfixjConfig(null);
         });
     }
 }

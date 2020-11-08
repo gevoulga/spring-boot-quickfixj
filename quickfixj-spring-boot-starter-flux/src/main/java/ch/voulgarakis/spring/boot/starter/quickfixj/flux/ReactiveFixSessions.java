@@ -18,16 +18,45 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.context.support.GenericApplicationContext;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 import java.util.List;
 import java.util.Objects;
 
-public class ReactiveFixSessions extends InternalFixSessions<ReactiveAbstractFixSession> {
+public class ReactiveFixSessions extends InternalFixSessions<ReactiveFixSessionImpl> {
 
-    public ReactiveFixSessions(SessionSettings sessionSettings, List<ReactiveAbstractFixSession> sessions) {
-        super(sessionSettings, sessions, ReactiveAbstractFixSession::new);
+    private static final Logger LOG = LoggerFactory.getLogger(ReactiveFixSessions.class);
+
+    public ReactiveFixSessions(GenericApplicationContext applicationContext, SessionSettings sessionSettings,
+            List<ReactiveFixSessionImpl> sessions) {
+        super(sessionSettings, sessions, (sessionName, sessionID) -> {
+            if (!applicationContext.containsBean(sessionName)) {
+                //We do not use "new ReactiveAbstractFixSession(sessionID)" directly.
+                // Instead we create the reactive fix session bean definition.
+                AbstractBeanDefinition reactiveFixSessionBeanDefinition = BeanDefinitionBuilder
+                        .genericBeanDefinition(NamedReactiveFixSessionImpl.class)
+                        .addConstructorArgValue(sessionName)
+                        .addConstructorArgValue(sessionID)
+                        .getBeanDefinition();
+
+                //Register the bean definition in spring
+                applicationContext.registerBeanDefinition(sessionName, reactiveFixSessionBeanDefinition);
+                //Retrieve the actual bean (will also force its instantiation)
+                NamedReactiveFixSessionImpl reactiveFixSession =
+                        applicationContext.getBean(sessionName, NamedReactiveFixSessionImpl.class);
+
+                LOG.info("FixSession created with bean name='{}', and SessionID={}", sessionName, sessionID);
+                return reactiveFixSession;
+            } else {
+                return applicationContext.getBean(sessionName, ReactiveFixSessionImpl.class);
+            }
+        });
     }
 
     public ReactiveFixSession get(SessionID sessionID) {

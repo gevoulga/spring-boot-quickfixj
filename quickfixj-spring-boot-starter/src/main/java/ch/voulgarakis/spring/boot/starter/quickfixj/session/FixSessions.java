@@ -24,13 +24,10 @@ import quickfix.SessionSettings;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.extractSessionName;
-
 public class FixSessions extends InternalFixSessions<AbstractFixSession> {
 
     public FixSessions(SessionSettings sessionSettings, List<AbstractFixSession> sessions) {
-        super(sessionSettings, sessions, sessionID -> {
-            String sessionName = extractSessionName(sessionSettings, sessionID);
+        super(sessionSettings, sessions, (sessionName, sessionID) -> {
             List<String> sessionNames = sessions.stream()
                     .map(FixSessionUtils::extractFixSessionName)
                     .collect(Collectors.toList());

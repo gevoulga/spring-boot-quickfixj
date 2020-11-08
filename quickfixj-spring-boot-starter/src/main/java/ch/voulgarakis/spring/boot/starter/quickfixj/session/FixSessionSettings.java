@@ -19,17 +19,16 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJSettingsNotFoundException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ResourceCondition;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import quickfix.Dictionary;
-import quickfix.*;
+import quickfix.ConfigError;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,74 +37,59 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUtils.stream;
 import static java.lang.Thread.currentThread;
-import static java.util.Optional.empty;
-import static org.apache.commons.lang3.tuple.Pair.of;
-import static quickfix.SessionID.NOT_SET;
-import static quickfix.SessionSettings.*;
 
-public class FixSessionSettings extends ResourceCondition {
+public class FixSessionSettings {
+
+    private static final Logger LOG = LoggerFactory.getLogger(FixSessionSettings.class);
 
     public static final String SYSTEM_VARIABLE_QUICKFIXJ_CONFIG = "quickfixj.config";
-    private static final Logger LOG = LoggerFactory.getLogger(FixSessionSettings.class);
-    private static final String QUICKFIXJ_CONFIG = "quickfixj.cfg";
+    public static final String QUICKFIXJ_CONFIG = "quickfixj.cfg";
     private static final String DATA_DICTIONARY = "DataDictionary";
     private static final String SESSION_NAME = "SessionName";
 
-    public FixSessionSettings() {
-        super("QuickFixJ Server", SYSTEM_VARIABLE_QUICKFIXJ_CONFIG,
-                "file:./" + QUICKFIXJ_CONFIG, "classpath:/" + QUICKFIXJ_CONFIG);
+    private final Environment environment;
+    private final ResourceLoader resourceLoader;
+    private final Resource quickfixjConfig;
+
+    public FixSessionSettings(Environment environment, ResourceLoader resourceLoader,
+            String definedQuickfixjConfig) {
+        this.environment = environment;
+        this.resourceLoader = resourceLoader;
+        this.quickfixjConfig = findQuickfixjConfig(definedQuickfixjConfig);
     }
 
-    public static SessionSettings loadSettings(String userDefinedLocation, Environment environment,
-            ResourceLoader resourceLoader) {
-        List<Pair<String, Boolean>> locations = Stream.of(of(userDefinedLocation, true),
-                of(System.getProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG), true),
-                of("file:./" + QUICKFIXJ_CONFIG, false),
-                of("classpath:/" + QUICKFIXJ_CONFIG, false))
-                .collect(Collectors.toList());
-
-        try {
-            for (Pair<String, Boolean> location : locations) {
-                Optional<Resource> resource = loadResource(location.getLeft(), location.getRight());
-                if (resource.isPresent()) {
-                    LOG.info("Loading settings from '{}'", location);
-                    SessionSettings sessionSettings = createSessionSettings(environment, resourceLoader,
-                            resource.get());
-                    FixSessionUtils.ensureUniqueSessionNames(sessionSettings);
-                    return sessionSettings;
-                }
+    public static Resource findQuickfixjConfig(String userDefinedLocation) {
+        String[] locations = new String[]{
+                userDefinedLocation,
+                System.getProperty(SYSTEM_VARIABLE_QUICKFIXJ_CONFIG),
+                "file:./" + QUICKFIXJ_CONFIG,
+                "classpath:/" + QUICKFIXJ_CONFIG
+        };
+        for (int i = 0; i < locations.length; i++) {
+            String location = locations[i];
+            if (StringUtils.isBlank(location)) {
+                continue;
             }
-            throw new QuickFixJSettingsNotFoundException("Settings file not found");
-        } catch (ConfigError | IOException e) {
-            throw new QuickFixJSettingsNotFoundException(e.getMessage(), e);
+            ClassLoader classLoader = currentThread().getContextClassLoader();
+            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);
+            Resource resource = resolver.getResource(location);
+            if (resource.exists()) {
+                LOG.info("Configuring QuickFixJ engine using file: {}", resource.getDescription());
+                return resource;
+            } else if (i < 2) {
+                throw new QuickFixJSettingsNotFoundException(
+                        "QuickFixJ configuration file not found at specified location: " + location);
+            }
         }
+        throw new QuickFixJSettingsNotFoundException(
+                "QuickFixJ configuration file not found on any of the locations: " + Arrays.toString(locations));
     }
 
-    private static Optional<Resource> loadResource(String location, boolean failIfNotFound) {
-        if (location == null) {
-            return empty();
-        }
-
-        ClassLoader classLoader = currentThread().getContextClassLoader();
-        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);
-
-        Resource resource = resolver.getResource(location);
-        if (resource.exists()) {
-            return Optional.of(resource);
-        } else if (failIfNotFound) {
-            throw new QuickFixJSettingsNotFoundException("Resource not found: " + location);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private static SessionSettings createSessionSettings(Environment environment, ResourceLoader resourceLoader,
-            Resource resource) throws ConfigError, IOException {
-        try (InputStream inputStream = resource.getInputStream()) {
+    public SessionSettings createSessionSettings() throws ConfigError, IOException {
+        try (InputStream inputStream = quickfixjConfig.getInputStream()) {
             //SessionSettings sessionSettings = new SessionSettings(inputStream);
             InputStream stream;
 
@@ -118,7 +102,7 @@ public class FixSessionSettings extends ResourceCondition {
                 stream = new ByteArrayInputStream(
                         replacedPropertiesSessionSettingsString.getBytes());
             } else {
-                stream = resource.getInputStream();
+                stream = inputStream;
             }
 
             SessionSettings sessionSettings = new SessionSettings(stream);
@@ -130,20 +114,23 @@ public class FixSessionSettings extends ResourceCondition {
                 }
             });
             //Replace the directories specified to a format understood by quickfixj
-            resolveDirectories(sessionSettings, resourceLoader);
+            resolveDirectories(sessionSettings);
+
+            //Make sure the session names are unique
+            FixSessionUtils.ensureUniqueSessionNames(sessionSettings);
+
             return sessionSettings;
         }
     }
 
-    private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader) {
-        resolveDirectories(sessionSettings, resourceLoader, null);
+    private void resolveDirectories(SessionSettings sessionSettings) {
+        resolveDirectories(sessionSettings, null);
         stream(sessionSettings).forEach(sessionID -> {
-            resolveDirectories(sessionSettings, resourceLoader, sessionID);
+            resolveDirectories(sessionSettings, sessionID);
         });
     }
 
-    private static void resolveDirectories(SessionSettings sessionSettings, ResourceLoader resourceLoader,
-            SessionID sessionID) {
+    private void resolveDirectories(SessionSettings sessionSettings, SessionID sessionID) {
         boolean isDictionaryDefined = Objects.nonNull(sessionID) ?
                 sessionSettings.isSetting(sessionID, DATA_DICTIONARY) :
                 sessionSettings.isSetting(DATA_DICTIONARY);
@@ -154,7 +141,7 @@ public class FixSessionSettings extends ResourceCondition {
                         sessionSettings.getString(sessionID, DATA_DICTIONARY) :
                         sessionSettings.getString(DATA_DICTIONARY);
 
-                String path = getPath(dataDictionaryLocation, resourceLoader);
+                String path = getPath(dataDictionaryLocation);
 
                 if (Objects.nonNull(sessionID)) {
                     sessionSettings.setString(sessionID, DATA_DICTIONARY, path);
@@ -167,7 +154,7 @@ public class FixSessionSettings extends ResourceCondition {
         }
     }
 
-    private static String getPath(String dataDictionaryLocation, ResourceLoader resourceLoader) {
+    private String getPath(String dataDictionaryLocation) {
         Resource resource = resourceLoader.getResource(dataDictionaryLocation);
         try {
             Method getPath = resource.getClass().getMethod("getPath");
@@ -179,7 +166,7 @@ public class FixSessionSettings extends ResourceCondition {
         }
     }
 
-    static String extractSessionName(SessionSettings sessionSettings, SessionID sessionID) {
+    public static String extractSessionName(SessionSettings sessionSettings, SessionID sessionID) {
         try {
             if (sessionSettings.isSetting(sessionID, SESSION_NAME)) {
                 return sessionSettings.getString(sessionID, SESSION_NAME);
@@ -205,18 +192,5 @@ public class FixSessionSettings extends ResourceCondition {
             throw new QuickFixJConfigurationException("Too many sessionIds found: " + sessionIds);
         }
         return sessionIds.get(0);
-    }
-
-    public static SessionID sessionID(SessionSettings sessionSettings, Dictionary dictionary) {
-        Properties properties = sessionSettings.getDefaultProperties();
-        properties.putAll(dictionary.toMap());
-        return new SessionID(properties.getProperty(BEGINSTRING, NOT_SET),
-                properties.getProperty(SENDERCOMPID, NOT_SET),
-                properties.getProperty(SENDERSUBID, NOT_SET),
-                properties.getProperty(SENDERLOCID, NOT_SET),
-                properties.getProperty(TARGETCOMPID, NOT_SET),
-                properties.getProperty(TARGETSUBID, NOT_SET),
-                properties.getProperty(TARGETLOCID, NOT_SET),
-                properties.getProperty(SESSION_QUALIFIER, NOT_SET));
     }
 }

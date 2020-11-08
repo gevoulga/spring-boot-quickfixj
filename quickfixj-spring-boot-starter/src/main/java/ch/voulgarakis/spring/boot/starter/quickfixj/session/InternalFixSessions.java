@@ -22,6 +22,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,7 @@ public class InternalFixSessions<T extends AbstractFixSession> {
 
 
     public InternalFixSessions(SessionSettings sessionSettings, List<T> sessions,
-            Function<SessionID, T> fixSessionCreator) {
+            BiFunction<String, SessionID, T> fixSessionProvider) {
         //Ensure unique names for sessions
         if (sessions.size() > 1) {
             List<String> sessionNames = sessions.stream()
@@ -68,7 +69,7 @@ public class InternalFixSessions<T extends AbstractFixSession> {
             }
             //no session bean defined
             else if (sessions.isEmpty()) {
-                fixSession = fixSessionCreator.apply(sessionID);
+                fixSession = fixSessionProvider.apply(sessionName, sessionID);
             }
             //Invalid
             else {
@@ -98,7 +99,7 @@ public class InternalFixSessions<T extends AbstractFixSession> {
                         //Try to find the session with the given name in the map
                         T fixSession = Optional.ofNullable(fixNameSessionMap.remove(sessionName))
                                 //Or create a new one!
-                                .orElseGet(() -> fixSessionCreator.apply(sessionID));
+                                .orElseGet(() -> fixSessionProvider.apply(sessionName, sessionID));
                         //Set the sessionId in the fixSession
                         fixSession.setSessionId(sessionID);
                         return fixSession;
@@ -110,6 +111,10 @@ public class InternalFixSessions<T extends AbstractFixSession> {
                         "No session settings defined for FIX session beans: " + fixNameSessionMap.keySet());
             }
         }
+    }
+
+    public Map<SessionID, T> getFixSessions() {
+        return fixSessions;
     }
 
     protected T retrieveSession(SessionID sessionId) {

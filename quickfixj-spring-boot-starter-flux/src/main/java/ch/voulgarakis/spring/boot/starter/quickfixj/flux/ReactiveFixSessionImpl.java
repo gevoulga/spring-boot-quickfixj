@@ -26,6 +26,7 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +52,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class ReactiveAbstractFixSession extends AbstractFixSession implements ReactiveFixSession {
+public class ReactiveFixSessionImpl extends AbstractFixSession implements ReactiveFixSession {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ReactiveAbstractFixSession.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ReactiveFixSessionImpl.class);
 
     private final Set<Tuple2<Predicate<Message>, FluxSink<Message>>> sinks =
             ConcurrentHashMap.newKeySet();
@@ -73,13 +74,13 @@ public class ReactiveAbstractFixSession extends AbstractFixSession implements Re
     /**
      * SessionID resolved by {@link ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionManager}.
      */
-    public ReactiveAbstractFixSession() {
+    public ReactiveFixSessionImpl() {
     }
 
     /**
      * @param sessionId Session Id manually assigned.
      */
-    public ReactiveAbstractFixSession(SessionID sessionId) {
+    public ReactiveFixSessionImpl(SessionID sessionId) {
         super(sessionId);
     }
 
@@ -89,6 +90,9 @@ public class ReactiveAbstractFixSession extends AbstractFixSession implements Re
     @Autowired(required = false)
     public void setMeterRegistry(MeterRegistry meterRegistry) {
         String fixSessionName = FixSessionUtils.extractFixSessionName(this);
+        if (StringUtils.isBlank(fixSessionName)) {
+            return;
+        }
 
         //The connection state
         Gauge.builder("quickfixj.flux.connection", () -> Objects.isNull(loggedOut.get()) ? 1 : 0)

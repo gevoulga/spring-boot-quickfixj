@@ -17,7 +17,9 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.settings.OnSettingsChangeDynamicAcceptorSessionProvider;
 import quickfix.*;
+import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
 public enum FixConnectionType {
     ACCEPTOR(false, true),
@@ -61,13 +63,28 @@ public enum FixConnectionType {
             SessionSettings sessionSettings, LogFactory logFactory,
             MessageFactory messageFactory) throws ConfigError {
         if (isAcceptor) {
+
+//            sessionSettings.setString("AcceptorTemplate", "Y");
+            AbstractSocketAcceptor socketAcceptor;
+
             if (isThreaded) {
-                return new ThreadedSocketAcceptor(application, messageStoreFactory, sessionSettings, logFactory,
-                        messageFactory);
+                socketAcceptor =
+                        new ThreadedSocketAcceptor(application, messageStoreFactory, sessionSettings, logFactory,
+                                messageFactory);
             } else {
-                return new SocketAcceptor(application, messageStoreFactory, sessionSettings, logFactory,
-                        messageFactory);
+                socketAcceptor =
+                        new SocketAcceptor(application, messageStoreFactory, sessionSettings, logFactory,
+                                messageFactory);
             }
+
+            //Set the dynamic acceptor session provider, which will create the sessions on the fly,
+            // if the session settings have changed
+            OnSettingsChangeDynamicAcceptorSessionProvider sessionProvider =
+                    new OnSettingsChangeDynamicAcceptorSessionProvider(sessionSettings, socketAcceptor, application,
+                            messageStoreFactory, logFactory, messageFactory);
+            socketAcceptor.getAcceptorAddresses().values()
+                    .forEach(socketAddress -> socketAcceptor.setSessionProvider(socketAddress, sessionProvider));
+            return socketAcceptor;
         } else {
             if (isThreaded) {
                 return new ThreadedSocketInitiator(application, messageStoreFactory, sessionSettings, logFactory,

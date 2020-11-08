@@ -18,6 +18,7 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.RejectException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingContext;
@@ -31,6 +32,7 @@ import quickfix.RejectLogon;
 import quickfix.SessionID;
 import quickfix.field.MsgType;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -39,31 +41,40 @@ import static ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMess
 public class FixSessionManager implements Application {
 
     private static final Logger LOG = LoggerFactory.getLogger(FixSessionManager.class);
-    private final InternalFixSessions<? extends AbstractFixSession> fixSessions;
+    private final Map<SessionID, ? extends AbstractFixSession> fixSessions;
     private final FixConnectionType fixConnectionType;
     private final StartupLatch startupLatch;
     private final LoggingId loggingId;
     private final AuthenticationService authenticationService;
 
-    public FixSessionManager(InternalFixSessions<? extends AbstractFixSession> fixSessions,
+    public FixSessionManager(Map<SessionID, ? extends AbstractFixSession> sessions,
             FixConnectionType fixConnectionType,
             StartupLatch startupLatch, LoggingId loggingId,
             AuthenticationService authenticationService) {
-        this.fixSessions = fixSessions;
+        this.fixSessions = sessions;
         this.fixConnectionType = fixConnectionType;
         this.startupLatch = startupLatch;
         this.loggingId = loggingId;
         this.authenticationService = authenticationService;
     }
 
+    private AbstractFixSession retrieveSession(SessionID sessionId) {
+        AbstractFixSession fixSession = fixSessions.get(sessionId);
+        if (Objects.isNull(fixSession)) {
+            throw new QuickFixJConfigurationException(
+                    String.format("No AbstractFixSession receiver for session [%s] ", sessionId));
+        }
+        return fixSession;
+    }
+
     private Logger logger(SessionID sessionId) {
         if (Objects.isNull(sessionId)) {
             return LOG;
         }
-        return Optional.ofNullable(fixSessions.retrieveSession(sessionId))
+        return Optional.ofNullable(fixSessions.get(sessionId))
                 .map(AbstractFixSession::getClass)
                 .map(LoggerFactory::getLogger)
-                .orElseGet(() -> LOG);
+                .orElse(LOG);
     }
 
     @Override
@@ -71,7 +82,7 @@ public class FixSessionManager implements Application {
         try (LoggingContext ignore = loggingId.loggingCtx(sessionId)) {
             logger(sessionId).info("Session created.");
             startupLatch.created(sessionId);
-            fixSessions.retrieveSession(sessionId);
+            retrieveSession(sessionId);
         }
     }
 
@@ -80,7 +91,7 @@ public class FixSessionManager implements Application {
         try (LoggingContext ignore = loggingId.loggingCtx(sessionId)) {
             logger(sessionId).info("Session logged on.");
             startupLatch.loggedOn(sessionId);
-            fixSessions.retrieveSession(sessionId).loggedOn();
+            retrieveSession(sessionId).loggedOn();
         }
     }
 
@@ -92,7 +103,7 @@ public class FixSessionManager implements Application {
             } else {
                 logger(sessionId).error("Session logged out.");
             }
-            fixSessions.retrieveSession(sessionId).error(new SessionDroppedException());
+            retrieveSession(sessionId).error(new SessionDroppedException());
         }
     }
 
@@ -124,7 +135,7 @@ public class FixSessionManager implements Application {
             if (!isMessageOfType(message, MsgType.HEARTBEAT, MsgType.RESEND_REQUEST)) {
                 logger(sessionId).debug("Received administrative message: {}", message);
                 if (isMessageOfType(message, MsgType.LOGON)) {
-                    AbstractFixSession fixSession = fixSessions.retrieveSession(sessionId);
+                    AbstractFixSession fixSession = retrieveSession(sessionId);
                     try {
                         authenticationService.authenticate(sessionId, message);
                         fixSession.loggedOn();
@@ -133,9 +144,9 @@ public class FixSessionManager implements Application {
                                 rejectLogon);
                     }
                 } else if (isMessageOfType(message, MsgType.LOGOUT)) {
-                    fixSessions.retrieveSession(sessionId).error(new SessionDroppedException(message));
+                    retrieveSession(sessionId).error(new SessionDroppedException(message));
                 } else if (RejectException.isReject(message)) {
-                    fixSessions.retrieveSession(sessionId).error(new RejectException(message));
+                    retrieveSession(sessionId).error(new RejectException(message));
                 }
             }
         } catch (Throwable e) {
@@ -156,9 +167,9 @@ public class FixSessionManager implements Application {
         try (LoggingContext ignore = loggingId.loggingCtx(sessionId)) {
             logger(sessionId).info("Received message: {}", message);
             if (RejectException.isReject(message)) {
-                fixSessions.retrieveSession(sessionId).error(new RejectException(message));
+                retrieveSession(sessionId).error(new RejectException(message));
             } else {
-                fixSessions.retrieveSession(sessionId).received(message);
+                retrieveSession(sessionId).received(message);
             }
         } catch (Throwable e) {
             logger(sessionId).error("Failed to process FIX message: {}", message, e);

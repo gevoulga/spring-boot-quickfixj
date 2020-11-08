@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.fix.example.client;
+package ch.voulgarakis.fix.example.client.web;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.flux.ReactiveFixSession;
 import ch.voulgarakis.spring.boot.starter.quickfixj.flux.ReactiveFixSessions;
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import quickfix.SessionID;
 import quickfix.field.QuoteID;
 import quickfix.field.QuoteReqID;
 import quickfix.fix43.QuoteRequest;
@@ -34,17 +35,27 @@ import reactor.core.publisher.Flux;
 
 import java.util.UUID;
 
+//@DependsOn("reactiveFixSessions")
 @RestController
 @RequestMapping("/fix")
 public class WebEndpoints {
 
-    private final ReactiveFixSessions reactiveFixSessions;
-
+    //We can either refer the session name directly
     @Autowired
-    public WebEndpoints(ReactiveFixSessions reactiveFixSessions) {
-        this.reactiveFixSessions = reactiveFixSessions;
-    }
+    //The session bean is named TEST (in quickfixj.cfg -> SessionName)
+    //If we had more than one sessions defined, then the Qualifier would be needed
+    //(or naming the session field appropriately - spring bean naming)
+    //@Qualifier("TEST")
+    private ReactiveFixSession fixSession;
 
+    /**
+     * Or we could wire-in the {@link ReactiveFixSessions} which is registry of all the sessions.
+     * Then, we could get the {@link ReactiveFixSession} by calling any of:
+     * {@link ReactiveFixSessions#get()}
+     * {@link ReactiveFixSessions#get(SessionID)}
+     * {@link ReactiveFixSessions#get(String)}
+     */
+    //private final ReactiveFixSessions reactiveFixSessions;
     @GetMapping("quote")
     @ResponseStatus(HttpStatus.OK)
     public Flux<String> quotesFromFixServer() {
@@ -54,9 +65,6 @@ public class WebEndpoints {
 
         //Set the logging context
         try (LoggingContext ignored = LoggingUtils.loggingContext(id)) {
-
-            //Get the (only) fix session from session registry
-            ReactiveFixSession fixSession = reactiveFixSessions.get();
 
             return fixSession
                     //Send the fix message (in the supplier) and subscribe at the responses

@@ -55,7 +55,7 @@ public class ReactiveFixSessionTest {
     @Autowired
     private FixSessionManager sessionManager;
     @Autowired
-    private ReactiveAbstractFixSession fixSession;
+    private ReactiveFixSessionImpl fixSession;
 
     @Test
     public void testBurstSubscription() {

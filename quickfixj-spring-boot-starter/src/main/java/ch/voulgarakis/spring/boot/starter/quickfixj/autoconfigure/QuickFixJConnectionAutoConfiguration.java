@@ -34,6 +34,7 @@ import quickfix.*;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
+import java.util.Map;
 import java.util.Optional;
 
 @Configuration
@@ -65,7 +66,8 @@ public class QuickFixJConnectionAutoConfiguration {
     public Application application(InternalFixSessions<? extends AbstractFixSession> fixSessions,
             FixConnectionType fixConnectionType, StartupLatch startupLatch, LoggingId loggingId,
             AuthenticationService authenticationService) {
-        return new FixSessionManager(fixSessions, fixConnectionType, startupLatch, loggingId, authenticationService);
+        Map<SessionID, ? extends AbstractFixSession> sessions = fixSessions.getFixSessions();
+        return new FixSessionManager(sessions, fixConnectionType, startupLatch, loggingId, authenticationService);
     }
 
     @Bean

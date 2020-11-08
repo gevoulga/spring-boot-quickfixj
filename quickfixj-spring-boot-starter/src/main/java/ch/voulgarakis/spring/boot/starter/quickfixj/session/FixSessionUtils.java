@@ -56,13 +56,13 @@ public class FixSessionUtils {
         }
     }
 
-    static Stream<SessionID> stream(SessionSettings sessionSettings) {
+    public static Stream<SessionID> stream(SessionSettings sessionSettings) {
         return StreamSupport.stream(
                 Spliterators.spliteratorUnknownSize(sessionSettings.sectionIterator(), Spliterator.NONNULL),
                 false);
     }
 
-    static void ensureUniqueSessionNames(SessionSettings sessionSettings) {
+    public static void ensureUniqueSessionNames(SessionSettings sessionSettings) {
         if (sessionSettings.size() > 1) {
             List<String> sessionNames = stream(sessionSettings)
                     .map(sessionID -> extractSessionName(sessionSettings, sessionID))

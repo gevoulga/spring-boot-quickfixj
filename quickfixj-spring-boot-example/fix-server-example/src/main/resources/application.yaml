@@ -1,9 +1,7 @@
 #Application
 spring:
   application:
-    name: fix-client-example
-  main:
-    web-application-type: reactive
+    name: fix-server-example
 
 #Quickfixj
 quickfixj:

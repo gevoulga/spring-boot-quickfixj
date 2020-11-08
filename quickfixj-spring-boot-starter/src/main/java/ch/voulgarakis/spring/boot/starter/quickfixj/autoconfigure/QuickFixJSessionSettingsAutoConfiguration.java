@@ -23,6 +23,8 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixConnectionType;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingId;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.StartupLatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -33,18 +35,27 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import quickfix.*;
 
+import java.io.IOException;
+
 @Configuration
 @AutoConfigurationPackage
 @ConditionalOnBean(annotation = EnableQuickFixJ.class)
 @EnableConfigurationProperties(QuickFixJBootProperties.class)
 //@ConfigurationPropertiesScan
 public class QuickFixJSessionSettingsAutoConfiguration {
+    private static final Logger LOG = LoggerFactory.getLogger(QuickFixJSessionSettingsAutoConfiguration.class);
+
+    @Bean
+    @ConditionalOnMissingBean(SessionSettings.class)
+    public FixSessionSettings fixSessionSettings(QuickFixJBootProperties properties, Environment environment,
+            ResourceLoader resourceLoader) {
+        return new FixSessionSettings(environment, resourceLoader, properties.getConfig());
+    }
 
     @Bean
     @ConditionalOnMissingBean
-    public SessionSettings sessionSettings(QuickFixJBootProperties properties, Environment environment,
-            ResourceLoader resourceLoader) {
-        return FixSessionSettings.loadSettings(properties.getConfig(), environment, resourceLoader);
+    public SessionSettings sessionSettings(FixSessionSettings fixSessionSettings) throws IOException, ConfigError {
+        return fixSessionSettings.createSessionSettings();
     }
 
     @Bean
@@ -68,8 +79,9 @@ public class QuickFixJSessionSettingsAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AuthenticationService authenticationService(SessionSettings sessionSettings) {
-        return new SessionSettingsAuthenticationService(sessionSettings);
+    public AuthenticationService authenticationService(SessionSettings sessionSettings,
+            FixConnectionType fixConnectionType) {
+        return new SessionSettingsAuthenticationService(sessionSettings, fixConnectionType);
     }
 
     @Bean
