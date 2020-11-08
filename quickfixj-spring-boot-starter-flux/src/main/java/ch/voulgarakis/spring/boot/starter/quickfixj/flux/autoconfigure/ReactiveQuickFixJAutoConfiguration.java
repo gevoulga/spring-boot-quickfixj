@@ -48,16 +48,15 @@ public class ReactiveQuickFixJAutoConfiguration {
         return new ReactiveFixSessions(applicationContext, sessionSettings);
     }
 
-//    @Bean
-//    @ConditionalOnMissingBean(ReactiveFixSession.class)
-//    public ReactiveFixSession fixSession(ReactiveFixSessions fixSessions) {
-//        return new NamedReactiveAbstractFixSession(null, null);
-//    }
-
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "logging.rxMDC", havingValue = "true")
     public ReactiveMdcContextConfiguration reactiveMdcContextConfiguration() {
         return new ReactiveMdcContextConfiguration();
+    }
+
+    @Bean
+    public ForceResolutionOfReactiveFixSessionsFirst myBeanFactoryPostProcessor() {
+        return new ForceResolutionOfReactiveFixSessionsFirst();
     }
 }

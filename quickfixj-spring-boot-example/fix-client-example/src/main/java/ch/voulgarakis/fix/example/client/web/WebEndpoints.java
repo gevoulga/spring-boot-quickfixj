@@ -46,7 +46,13 @@ public class WebEndpoints {
     //If we had more than one sessions defined, then the Qualifier would be needed
     //(or naming the session field appropriately - spring bean naming)
     //@Qualifier("TEST")
-    private ReactiveFixSession fixSession;
+    private final ReactiveFixSession fixSession;
+
+    @Autowired
+    public WebEndpoints(ReactiveFixSession fixSession) {
+//        reactiveFixSessions.getFixSessions();
+        this.fixSession = fixSession;
+    }
 
     /**
      * Or we could wire-in the {@link ReactiveFixSessions} which is registry of all the sessions.

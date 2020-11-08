@@ -8,7 +8,7 @@ spring:
 #Quickfixj
 quickfixj:
   jmx-enabled: true
-  startup-timeout: 20s
+  #startup-timeout: 20s
   config: "classpath:quickfixj.cfg"
   dictionary: "classpath:FIX43.xml"
 
