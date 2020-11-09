@@ -26,6 +26,100 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class ReactiveFixSessionMock implements ReactiveFixSession{
+public abstract class FixSessionMock implements ReactiveFixSession {
 
+    //A registry of the open streams
+    private final Map<String, Flux<Message>> streams = new HashMap<>();
+
+    @Override
+    public Flux<Message> subscribe(Predicate<Message> messageSelector) {
+        return Flux.fromIterable(streams.values())
+            .flatMap(quoteFlux -> quoteFlux)
+            .filter(messageSelector);
+    }
+
+    @Override
+    public Mono<Message> send(Supplier<Message> messageSupplier) {
+        return Mono.defer(() -> {
+            Message message = messageSupplier.get();
+            safeGetIdForRequest(message)
+                .ifPresent(quoteReqId -> {
+                    Flux<Message> quoteGenerator = quoteGenerator(quoteReqId, message);
+                    if (Objects.nonNull(quoteGenerator)) {
+                        streams.putIfAbsent(quoteReqId, quoteGenerator);
+                    }
+                });
+            return Mono.just(message);
+        });
+    }
+
+    @Override
+    public Flux<Message> sendAndReceive(Supplier<Message> messageSupplier) {
+        return send(messageSupplier)
+            .flatMapMany(message -> {
+                //Selector that will associate responses (referenceId) with the requestId
+                RefIdSelector refIdSelector = new RefIdSelector(message);
+                return subscribe(refIdSelector);
+            });
+    }
+
+    @Override
+    public Flux<Message> sendAndReceive(Supplier<Message> messageSupplier,
+        Function<Message, RefIdSelector> refIdSelectorSupplier) {
+        return send(messageSupplier)
+            .flatMapMany(message -> {
+                RefIdSelector refIdSelector = refIdSelectorSupplier.apply(message);
+                return subscribe(refIdSelector);
+            });
+    }
+
+    protected abstract Flux<Message> messageGenerator(String quoteReqId, Message request);
+
+    private Flux<Message> quoteGenerator(String reqId, Message request) {
+        Flux<Message> messageGenerator = messageGenerator(reqId, request);
+
+        if (Objects.nonNull(messageGenerator)) {
+            return messageGenerator
+                //Set the requestId
+                .map(message -> {
+                    try {
+                        StringField mdReqId = message.getField(new MDReqID(reqId));
+                        mdReqId.setValue(reqId);
+                        message.setField(mdReqId);
+                    } catch (FieldNotFound fieldNotFound) {
+                        //Nth to do
+                    }
+                    try {
+                        StringField quoteReqId = message.getField(new QuoteReqID(reqId));
+                        quoteReqId.setValue(reqId);
+                        message.setField(quoteReqId);
+                    } catch (FieldNotFound fieldNotFound) {
+                        //Nth to do
+                    }
+                    try {
+                        StringField clOrdId = message.getField(new ClOrdID(reqId));
+                        clOrdId.setValue(reqId);
+                        message.setField(clOrdId);
+                    } catch (FieldNotFound fieldNotFound) {
+                        //Nth to do
+                    }
+                    return message;
+                })
+                //Close when finished
+                .doOnTerminate(() -> streams.remove(reqId));
+        } else {
+            return null;
+        }
+    }
+
+
+    @Override
+    public boolean isLoggedOn() {
+        return true;
+    }
+
+    @Override
+    public SessionID getSessionId() {
+        return null;
+    }
 }
