@@ -103,7 +103,23 @@
             </dependency>
             <dependency>
                 <groupId>ch.voulgarakis</groupId>
+                <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.voulgarakis</groupId>
+                <artifactId>quickfixj-spring-boot-actuator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.voulgarakis</groupId>
                 <artifactId>quickfixj-spring-boot-starter</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>ch.voulgarakis</groupId>
+                <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
             </dependency>

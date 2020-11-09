@@ -35,8 +35,8 @@ import quickfix.SessionSettings;
 public class WebEndpointsTestContext {
 
     @Bean
-    public ReactiveFixSession fixSession(){
-
+    public ReactiveFixSession fixSession() {
+        return new SessionMock();
     }
 
     @SpringBootConfiguration

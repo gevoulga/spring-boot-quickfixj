@@ -64,7 +64,7 @@ public class WebEndpoints {
     //private final ReactiveFixSessions reactiveFixSessions;
     @GetMapping("quote")
     @ResponseStatus(HttpStatus.OK)
-    public Flux<String> quotesFromFixServer() {
+    public Flux<String> quoteFromFixServer() {
 
         //Generate a random UUID
         String id = UUID.randomUUID().toString();

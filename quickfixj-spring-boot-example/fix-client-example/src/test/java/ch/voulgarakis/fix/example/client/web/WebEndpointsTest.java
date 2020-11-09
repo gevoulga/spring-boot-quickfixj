@@ -21,18 +21,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration()
+@ContextConfiguration(classes = WebEndpointsTestContext.class)
 @ActiveProfiles("web-test")
 class WebEndpointsTest {
 
@@ -40,13 +42,13 @@ class WebEndpointsTest {
     private int port;
 
     @Test
-    void testQuotesFromFixServer() {
+    void testQuoteFromFixServer() {
         Flux<String> flux = WebTestClient
                 .bindToServer()
                 .baseUrl("http://localhost:" + port)
                 .build()
                 .get()
-                .uri("fix/quotes")
+                .uri("fix/quote")
 
                 //The exchange
                 .exchange()
@@ -67,17 +69,17 @@ class WebEndpointsTest {
     }
 
     @Test
-    void testServerError() {
+    void testClientError() {
         WebTestClient
                 .bindToServer()
                 .baseUrl("http://localhost:" + port)
                 .build()
                 .put()
                 .uri("fix/book")
-                .body("", String.class) //Empty quoteId -> this should return an error
+                .body(Mono.just(""), String.class) //Empty quoteId -> this should return an error
                 .exchange()
                 .expectStatus()
-                .is5xxServerError();
+                .is4xxClientError();
     }
 
     @Test
@@ -90,6 +92,6 @@ class WebEndpointsTest {
                 .uri("fix/book")
                 .exchange()
                 .expectStatus()
-                .isBadRequest();
+                .isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
     }
 }

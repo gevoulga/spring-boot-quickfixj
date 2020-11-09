@@ -17,16 +17,26 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector;
+import quickfix.FieldNotFound;
 import quickfix.Message;
 import quickfix.SessionID;
+import quickfix.StringField;
+import quickfix.field.ClOrdID;
+import quickfix.field.MDReqID;
+import quickfix.field.QuoteReqID;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public abstract class FixSessionMock implements ReactiveFixSession {
+import static ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMessageUtils.safeGetIdForRequest;
+
+public abstract class ReactiveFixSessionMock implements ReactiveFixSession {
 
     //A registry of the open streams
     private final Map<String, Flux<Message>> streams = new HashMap<>();
@@ -34,8 +44,8 @@ public abstract class FixSessionMock implements ReactiveFixSession {
     @Override
     public Flux<Message> subscribe(Predicate<Message> messageSelector) {
         return Flux.fromIterable(streams.values())
-            .flatMap(quoteFlux -> quoteFlux)
-            .filter(messageSelector);
+                .flatMap(quoteFlux -> quoteFlux)
+                .filter(messageSelector);
     }
 
     @Override
@@ -43,34 +53,34 @@ public abstract class FixSessionMock implements ReactiveFixSession {
         return Mono.defer(() -> {
             Message message = messageSupplier.get();
             safeGetIdForRequest(message)
-                .ifPresent(quoteReqId -> {
-                    Flux<Message> quoteGenerator = quoteGenerator(quoteReqId, message);
-                    if (Objects.nonNull(quoteGenerator)) {
-                        streams.putIfAbsent(quoteReqId, quoteGenerator);
-                    }
-                });
+                    .ifPresent(quoteReqId -> {
+                        Flux<Message> quoteGenerator = quoteGenerator(quoteReqId, message);
+                        if (Objects.nonNull(quoteGenerator)) {
+                            streams.putIfAbsent(quoteReqId, quoteGenerator);
+                        }
+                    });
             return Mono.just(message);
         });
     }
 
     @Override
-    public Flux<Message> sendAndReceive(Supplier<Message> messageSupplier) {
+    public Flux<Message> sendAndSubscribe(Supplier<Message> messageSupplier) {
         return send(messageSupplier)
-            .flatMapMany(message -> {
-                //Selector that will associate responses (referenceId) with the requestId
-                RefIdSelector refIdSelector = new RefIdSelector(message);
-                return subscribe(refIdSelector);
-            });
+                .flatMapMany(message -> {
+                    //Selector that will associate responses (referenceId) with the requestId
+                    RefIdSelector refIdSelector = new RefIdSelector(message);
+                    return subscribe(refIdSelector);
+                });
     }
 
     @Override
-    public Flux<Message> sendAndReceive(Supplier<Message> messageSupplier,
-        Function<Message, RefIdSelector> refIdSelectorSupplier) {
+    public Flux<Message> sendAndSubscribe(Supplier<Message> messageSupplier,
+            Function<Message, RefIdSelector> refIdSelectorSupplier) {
         return send(messageSupplier)
-            .flatMapMany(message -> {
-                RefIdSelector refIdSelector = refIdSelectorSupplier.apply(message);
-                return subscribe(refIdSelector);
-            });
+                .flatMapMany(message -> {
+                    RefIdSelector refIdSelector = refIdSelectorSupplier.apply(message);
+                    return subscribe(refIdSelector);
+                });
     }
 
     protected abstract Flux<Message> messageGenerator(String quoteReqId, Message request);
@@ -80,33 +90,33 @@ public abstract class FixSessionMock implements ReactiveFixSession {
 
         if (Objects.nonNull(messageGenerator)) {
             return messageGenerator
-                //Set the requestId
-                .map(message -> {
-                    try {
-                        StringField mdReqId = message.getField(new MDReqID(reqId));
-                        mdReqId.setValue(reqId);
-                        message.setField(mdReqId);
-                    } catch (FieldNotFound fieldNotFound) {
-                        //Nth to do
-                    }
-                    try {
-                        StringField quoteReqId = message.getField(new QuoteReqID(reqId));
-                        quoteReqId.setValue(reqId);
-                        message.setField(quoteReqId);
-                    } catch (FieldNotFound fieldNotFound) {
-                        //Nth to do
-                    }
-                    try {
-                        StringField clOrdId = message.getField(new ClOrdID(reqId));
-                        clOrdId.setValue(reqId);
-                        message.setField(clOrdId);
-                    } catch (FieldNotFound fieldNotFound) {
-                        //Nth to do
-                    }
-                    return message;
-                })
-                //Close when finished
-                .doOnTerminate(() -> streams.remove(reqId));
+                    //Set the requestId
+                    .map(message -> {
+                        try {
+                            StringField mdReqId = message.getField(new MDReqID(reqId));
+                            mdReqId.setValue(reqId);
+                            message.setField(mdReqId);
+                        } catch (FieldNotFound fieldNotFound) {
+                            //Nth to do
+                        }
+                        try {
+                            StringField quoteReqId = message.getField(new QuoteReqID(reqId));
+                            quoteReqId.setValue(reqId);
+                            message.setField(quoteReqId);
+                        } catch (FieldNotFound fieldNotFound) {
+                            //Nth to do
+                        }
+                        try {
+                            StringField clOrdId = message.getField(new ClOrdID(reqId));
+                            clOrdId.setValue(reqId);
+                            message.setField(clOrdId);
+                        } catch (FieldNotFound fieldNotFound) {
+                            //Nth to do
+                        }
+                        return message;
+                    })
+                    //Close when finished
+                    .doOnTerminate(() -> streams.remove(reqId));
         } else {
             return null;
         }

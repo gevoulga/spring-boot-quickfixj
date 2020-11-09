@@ -43,12 +43,10 @@
         <dependency>
             <groupId>ch.voulgarakis</groupId>
             <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.voulgarakis</groupId>
             <artifactId>quickfixj-spring-boot-actuator</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- Test dependencies-->
@@ -70,7 +68,6 @@
         <dependency>
             <groupId>ch.voulgarakis</groupId>
             <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
-            <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
