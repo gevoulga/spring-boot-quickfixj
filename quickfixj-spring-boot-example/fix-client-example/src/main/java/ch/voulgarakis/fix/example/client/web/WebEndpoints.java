@@ -21,17 +21,17 @@ import ch.voulgarakis.spring.boot.starter.quickfixj.flux.ReactiveFixSessions;
 import ch.voulgarakis.spring.boot.starter.quickfixj.flux.logging.LoggingUtils;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingContext;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMessageUtils;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.StaticExtractor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import quickfix.SessionID;
-import quickfix.field.QuoteID;
-import quickfix.field.QuoteReqID;
+import quickfix.field.*;
+import quickfix.fix43.NewOrderSingle;
 import quickfix.fix43.QuoteRequest;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -84,6 +84,50 @@ public class WebEndpoints {
                     .map(quote -> FixMessageUtils
                             .safeGetField(quote, new QuoteID())
                             .orElse("not-found"))
+
+                    //Set the logging context in the reactive processing chain
+                    .subscriberContext(LoggingUtils.withLoggingContext())
+                    //Export metrics
+                    .metrics();
+        }
+    }
+
+
+    @RequestMapping(path = "book", method = {RequestMethod.PUT, RequestMethod.POST, RequestMethod.PATCH})
+    public Mono<String> bookQuoteFromFixServer(@RequestBody String quoteId) {
+        if (StringUtils.isBlank(quoteId)) {
+            return Mono.error(new IllegalArgumentException("No quoteId defined"));
+        }
+
+        //Set the logging context
+        try (LoggingContext ignored = LoggingUtils.loggingContext(quoteId)) {
+
+            return fixSession
+                    //Send the fix message (in the supplier) and subscribe at the responses
+                    .sendAndSubscribe(() -> {
+                        //Create a mock new order request and set the quote id!
+                        NewOrderSingle newOrderSingle = new NewOrderSingle();
+                        newOrderSingle.set(new ClOrdID(quoteId));
+                        return newOrderSingle;
+                    })
+                    //take the first response
+                    .next()
+                    //Get the quoteId
+                    .map(executionReport -> {
+                        //The execution Id
+                        String executionId = FixMessageUtils
+                                .safeGetField(executionReport, new ExecID())
+                                .orElse("not-found");
+
+                        //The Order status
+                        String ordStatus = FixMessageUtils
+                                .safeGetField(executionReport, new OrdStatus())
+                                //Convert the character code of the OrdStatus into text
+                                .map(c -> StaticExtractor.toText(new OrdStatus(), c))
+                                .orElse("not-found");
+
+                        return executionId + "/" + ordStatus;
+                    })
 
                     //Set the logging context in the reactive processing chain
                     .subscriberContext(LoggingUtils.withLoggingContext())

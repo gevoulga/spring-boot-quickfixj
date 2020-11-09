@@ -30,6 +30,7 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
@@ -38,6 +39,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- QuickfixJ dependencies -->
         <dependency>
             <groupId>ch.voulgarakis</groupId>
             <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
@@ -47,6 +49,30 @@
             <groupId>ch.voulgarakis</groupId>
             <artifactId>quickfixj-spring-boot-actuator</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- Test dependencies-->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.voulgarakis</groupId>
+            <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
