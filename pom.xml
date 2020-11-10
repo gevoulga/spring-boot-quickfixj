@@ -40,15 +40,13 @@
     <groupId>ch.voulgarakis</groupId>
     <artifactId>quickfixj-spring-boot</artifactId>
     <version>${revision}${changelist}</version>
-    <packaging>pom</packaging>
     <description>QuickfixJ integration in Spring-Boot</description>
+    <packaging>pom</packaging>
 
     <modules>
-        <module>voulgarakis-commons</module>
         <module>quickfixj-spring-boot-starter</module>
         <module>quickfixj-spring-boot-actuator</module>
         <module>quickfixj-spring-boot-starter-flux</module>
-        <module>quickfixj-spring-boot-example</module>
     </modules>
 
     <properties>
