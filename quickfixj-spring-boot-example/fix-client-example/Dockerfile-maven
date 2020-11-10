@@ -1,8 +1,18 @@
+FROM maven:3.6.0-jdk-8-alpine AS MAVEN_TOOL_CHAIN
+#Copy over the project files and run maven package
+WORKDIR /tmp
+COPY pom.xml /tmp/
+COPY src /tmp/src/
+RUN mvn package
+
+#########################
+
 FROM openjdk:8-jdk-alpine as layerbuilder
-ARG JAR_FILE=target/*-executable.jar
 WORKDIR /user/app
 #Copy over the fat-jar file into the /user/app directory
-COPY ${JAR_FILE} app.jar
+COPY --from=MAVEN_TOOL_CHAIN /tmp/target/*-executable.jar app.jar
+#ARG JAR_FILE=target/*-executable.jar
+#COPY ${JAR_FILE} app.jar
 #And extract the layers
 RUN java -Djarmode=layertools -jar app.jar extract
 
@@ -28,4 +38,4 @@ LABEL component="FIX-CLIENT"
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
 
 #Health check by pinging the actuator health url
-#HEALTHCHECK  --start-period=20s CMD wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+HEALTHCHECK  --start-period=20s CMD wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1
