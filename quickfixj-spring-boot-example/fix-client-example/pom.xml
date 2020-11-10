@@ -73,4 +73,20 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!-- Configure spring boot to create a layered fat jar (docker will take advantage of the layers to speed-up build time) -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <classifier>executable</classifier>
+                    <layers>
+                        <enabled>true</enabled>
+                    </layers>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
