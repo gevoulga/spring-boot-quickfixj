@@ -3,6 +3,18 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.5.RELEASE</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>ch.voulgarakis</groupId>
+    <artifactId>quickfixj-spring-boot</artifactId>
+    <version>${revision}${changelist}</version>
+    <description>QuickfixJ integration in Spring-Boot</description>
+    <packaging>pom</packaging>
     <url>https://github.com/gevoulga/spring-boot-quickfixj</url>
     <organization>
         <name>ch.voulgarakis</name>
@@ -30,18 +42,6 @@
             <email>mail@voulgarakis.ch</email>
         </developer>
     </developers>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.5.RELEASE</version>
-        <relativePath/>
-    </parent>
-
-    <groupId>ch.voulgarakis</groupId>
-    <artifactId>quickfixj-spring-boot</artifactId>
-    <version>${revision}${changelist}</version>
-    <description>QuickfixJ integration in Spring-Boot</description>
-    <packaging>pom</packaging>
 
     <modules>
         <module>quickfixj-spring-boot-starter</module>
@@ -102,23 +102,23 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!-- Tag the release version in git -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-scm-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>git-tag</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>tag</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <tag>REL_v${project.version}</tag>
-                        </configuration>
-                    </plugin>
+<!--                    &lt;!&ndash; Tag the release version in git &ndash;&gt;-->
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-scm-plugin</artifactId>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <id>git-tag</id>-->
+<!--                                <phase>deploy</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>tag</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                        <configuration>-->
+<!--                            <tag>REL_v${project.version}</tag>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
                     <!-- Stating release:
                         mvn clean deploy -Prelease
                         mvn nexus-staging:release -Prelease
