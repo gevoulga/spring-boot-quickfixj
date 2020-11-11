@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
+    <name>Spring Boot Starter Quickfixj Flux</name>
     <description>Spring Boot Starter for Reactive QuickFixJ</description>
     <packaging>jar</packaging>
 

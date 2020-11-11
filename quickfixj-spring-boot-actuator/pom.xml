@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>quickfixj-spring-boot-actuator</artifactId>
+    <name>Spring Boot Actuator Quickfixj</name>
     <description>Spring Boot Actuator for QuickFixJ</description>
     <packaging>jar</packaging>
 

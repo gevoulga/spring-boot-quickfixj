@@ -13,9 +13,27 @@
     <groupId>ch.voulgarakis</groupId>
     <artifactId>quickfixj-spring-boot</artifactId>
     <version>${revision}${changelist}</version>
+    <name>Spring Boot Starter Quickfixj Parent</name>
     <description>QuickfixJ integration in Spring-Boot</description>
-    <packaging>pom</packaging>
     <url>https://github.com/gevoulga/spring-boot-quickfixj</url>
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://github.com/gevoulga/spring-boot-quickfixj/blob/master/LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Georgios Voulgarakis</name>
+            <email>mail@voulgarakis.ch</email>
+        </developer>
+    </developers>
+    <scm>
+        <url>https://github.com/gevoulga/spring-boot-quickfixj</url>
+        <connection>scm:git:git@github.com:gevoulga/spring-boot-quickfixj.git</connection>
+        <developerConnection>scm:git:git@github.com:gevoulga/spring-boot-quickfixj.git</developerConnection>
+    </scm>
     <organization>
         <name>ch.voulgarakis</name>
         <url>https://voulgarakis.ch</url>
@@ -24,25 +42,8 @@
         <system>GitHub</system>
         <url>https://github.com/gevoulga/spring-boot-quickfixj/issues</url>
     </issueManagement>
-    <licenses>
-        <license>
-            <name>Apache License 2.0</name>
-            <url>https://github.com/gevoulga/spring-boot-quickfixj/blob/master/LICENSE.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <scm>
-        <url>https://github.com/gevoulga/spring-boot-quickfixj</url>
-        <connection>scm:git:git@github.com:gevoulga/spring-boot-quickfixj.git</connection>
-        <developerConnection>scm:git:git@github.com:gevoulga/spring-boot-quickfixj.git</developerConnection>
-    </scm>
-    <developers>
-        <developer>
-            <name>Georgios Voulgarakis</name>
-            <email>mail@voulgarakis.ch</email>
-        </developer>
-    </developers>
 
+    <packaging>pom</packaging>
     <modules>
         <module>quickfixj-spring-boot-starter</module>
         <module>quickfixj-spring-boot-actuator</module>
@@ -102,27 +103,28 @@
                             </execution>
                         </executions>
                     </plugin>
-<!--                    &lt;!&ndash; Tag the release version in git &ndash;&gt;-->
-<!--                    <plugin>-->
-<!--                        <groupId>org.apache.maven.plugins</groupId>-->
-<!--                        <artifactId>maven-scm-plugin</artifactId>-->
-<!--                        <executions>-->
-<!--                            <execution>-->
-<!--                                <id>git-tag</id>-->
-<!--                                <phase>deploy</phase>-->
-<!--                                <goals>-->
-<!--                                    <goal>tag</goal>-->
-<!--                                </goals>-->
-<!--                            </execution>-->
-<!--                        </executions>-->
-<!--                        <configuration>-->
-<!--                            <tag>REL_v${project.version}</tag>-->
-<!--                        </configuration>-->
-<!--                    </plugin>-->
-                    <!-- Stating release:
+                    <!--                    &lt;!&ndash; Tag the release version in git &ndash;&gt;-->
+                    <!--                    <plugin>-->
+                    <!--                        <groupId>org.apache.maven.plugins</groupId>-->
+                    <!--                        <artifactId>maven-scm-plugin</artifactId>-->
+                    <!--                        <executions>-->
+                    <!--                            <execution>-->
+                    <!--                                <id>git-tag</id>-->
+                    <!--                                <phase>deploy</phase>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>tag</goal>-->
+                    <!--                                </goals>-->
+                    <!--                            </execution>-->
+                    <!--                        </executions>-->
+                    <!--                        <configuration>-->
+                    <!--                            <tag>REL_v${project.version}</tag>-->
+                    <!--                        </configuration>-->
+                    <!--                    </plugin>-->
+                    <!-- Staging release:
                         mvn clean deploy -Prelease
                         mvn nexus-staging:release -Prelease
                         mvn nexus-staging:drop -Prelease
+                        https://oss.sonatype.org/#stagingRepositories
                     -->
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
@@ -197,6 +199,7 @@
                 <artifactId>flatten-maven-plugin</artifactId>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
                 </configuration>
                 <executions>
                     <execution>
