@@ -5,7 +5,7 @@ Spin-up QuickfixJ with **zero** code.
 
 ## Introduction
 
-FIX message exchange protocol is a mainstay of financial institute communication, for real-time electronic exchange of securities. +
+FIX message exchange protocol is a mainstay of financial institute communication, for real-time electronic exchange of securities.  
 QuickFIX/J is an implementation engine of FIX protocol.
 
 [Quickfixj Spring Boot](https://github.com/gevoulga/spring-boot-quickfixj) simplifies the process of spinning-up a FIX engine, by providing easy, spring-boot-style configuration of-the-shelf, with minimal FIX-layer config, enabling developers to focus on business logic.
@@ -18,7 +18,7 @@ Quickfixj Spring Boot supports:
  * imperative programming style (callbacks)
  * info, health-checks & metrics
  
-### Quickfixj config file
+## Quickfixj config file
 
 As per the requirements from quickfixj, the FIX sessions need to be configured in a https://www.quickfixj.org/usermanual/2.1.0/usage/configuration.html[configuration file]. +
 This can be done in `quickfixj.cfg` and will be picked up by default.
@@ -50,7 +50,7 @@ Username=cool #for authentication based on configuration
 Password=stuff
 ```
 
-### Session Beans
+## Session Beans
     
 For each FIX session specified in the quickfixj.cfg file, a corresponding session bean is created on-the-fly during spring context initialization.
 
@@ -72,7 +72,7 @@ Custom implementation of FIX session beans is possible.
 These should either be annotated with `@FixSessionMapping` or implement `NamedBean`.  
 The name of the beans needs to be the same with `SessionName` property in `quickfixj.cfg`.
 
-### Reactive:
+## Reactive
 
 #### Library
 
@@ -84,7 +84,7 @@ To start using reactive quickfixj you need to import the following dependency:
     <version>1.0.0.RELEASE</version>
 </dependency>
 ```
-#### Usage Example
+### Usage Example
 
 A Service that:
  * sends a quote request to the FIX session
@@ -131,7 +131,9 @@ public class ApplicationContext {
 }
 ```
 
-### Imperative:
+## Imperative
+
+#### Library
 
 ```xml
 <dependency>
@@ -183,7 +185,9 @@ public class QuotingService {
 }
 ```
 
-### Quickfixj Actuator:
+## Quickfixj Actuator
+
+#### Library
 
 Import `quickfixj-spring-boot-actuator` into your project:
 ```xml
