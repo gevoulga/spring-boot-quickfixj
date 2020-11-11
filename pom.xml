@@ -21,8 +21,8 @@
     </licenses>
     <scm>
         <url>https://github.com/gevoulga/spring-boot-quickfixj</url>
-        <connection>scm:git:https://github.com/gevoulga/spring-boot-quickfixj.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:gevoulga/spring-boot-quickfixj.git</developerConnection>
+        <connection>scm:git:git@github.com:gevoulga/spring-boot-quickfixj.git</connection>
+        <developerConnection>scm:git:git@github.com:gevoulga/spring-boot-quickfixj.git</developerConnection>
     </scm>
     <developers>
         <developer>
@@ -67,7 +67,7 @@
         <!-- Plugins -->
         <!--/////////-->
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
     </properties>
 
     <!-- To release:
@@ -117,7 +117,6 @@
                         </executions>
                         <configuration>
                             <tag>REL_v${project.version}</tag>
-                            <message>prepare release REL_v${project.version}</message>
                         </configuration>
                     </plugin>
                     <!-- Stating release:
