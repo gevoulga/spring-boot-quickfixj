@@ -17,48 +17,31 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJException;
-import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionUtils;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.FixMessageUtils;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.MessageSink;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import quickfix.Message;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
-import quickfix.field.MsgType;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
-import java.util.Collection;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class ReactiveFixSessionImpl extends AbstractFixSession implements ReactiveFixSession {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ReactiveFixSessionImpl.class);
-
-    private final Set<Tuple2<Predicate<Message>, FluxSink<Message>>> sinks =
-            ConcurrentHashMap.newKeySet();
-    private final AtomicReference<SessionDroppedException> loggedOut = new AtomicReference<>();
 
     //--------------------------------------------------
     //-----------------------METRICS--------------------
@@ -95,13 +78,13 @@ public class ReactiveFixSessionImpl extends AbstractFixSession implements Reacti
         }
 
         //The connection state
-        Gauge.builder("quickfixj.flux.connection", () -> Objects.isNull(loggedOut.get()) ? 1 : 0)
+        Gauge.builder("quickfixj.flux.connection", () -> isLoggedOn() ? 1 : 0)
                 .description("Connection state of reactive fix session")
                 .tag("fixSessionName", fixSessionName)
                 .register(meterRegistry);
 
         //The number of subscribers
-        Gauge.builder("quickfixj.flux.subscribers", sinks, Collection::size)
+        Gauge.builder("quickfixj.flux.subscribers", this::sinkSize)
                 .description("Number of subscribers on reactive fix session")
                 .tag("fixSessionName", fixSessionName)
                 .register(meterRegistry);
@@ -130,68 +113,18 @@ public class ReactiveFixSessionImpl extends AbstractFixSession implements Reacti
     //--------------------------------------------------
     @Override
     protected void received(Message message) {
-        //loggedOut(null);
         if (Objects.nonNull(messagesReceived)) {
             messagesReceived.increment();
         }
-        notifySubscribers(message, sink -> sink.next(message));
+        super.received(message);
     }
 
     @Override
     protected void error(SessionException ex) {
-        loggedOut(ex);
         if (Objects.nonNull(rejections)) {
             rejections.increment();
         }
-        notifySubscribers(ex.getFixMessage(), sink -> sink.error(ex));
-    }
-
-    @Override
-    protected void loggedOn() {
-        loggedOut(null);
-    }
-
-    /**
-     * Store the logout (if not null) so subsequent subscriptions will be notified that the session has been dropped.
-     *
-     * @param ex the session exception.
-     *           If of type SessionDroppedException, it will be stored.
-     *           Otherwise, any existing error will be cleared.
-     */
-    private void loggedOut(SessionException ex) {
-        if (ex instanceof SessionDroppedException) {
-            SessionDroppedException droppedException = (SessionDroppedException) ex;
-            //Do not override if a SessionDroppedException with a Fix Message already exists!
-            if (Objects.nonNull(ex.getFixMessage())) {
-                loggedOut.set(droppedException);
-            } else {
-                loggedOut.compareAndSet(null, droppedException);
-            }
-        } else {
-            loggedOut.set(null);
-        }
-    }
-
-    private synchronized void notifySubscribers(Message message, Consumer<FluxSink<Message>> sinkConsumer) {
-        //Notify all the sinks in parallel
-        int notifiedSinks = sinks.parallelStream()
-                .mapToInt(tuple -> {
-                    //Check if we should notify the subscriber (based on the predicate of the sink)
-                    boolean notifySubscribers = tuple.getT1().test(message);
-                    if (notifySubscribers) {
-                        //Notify the sink
-                        sinkConsumer.accept(tuple.getT2());
-                    }
-                    //Return the notified sink
-                    return notifySubscribers ? 1 : 0;
-                })
-                .sum();
-
-        //Log a warning if nobody was notified
-        if (Objects.nonNull(message) && notifiedSinks == 0 &&
-                !FixMessageUtils.isMessageOfType(message, MsgType.LOGOUT)) {
-            LOG.warn("Message received could not be associated with any Request. Message: {}", message);
-        }
+        super.error(ex);
     }
 
     //--------------------------------------------------
@@ -212,20 +145,17 @@ public class ReactiveFixSessionImpl extends AbstractFixSession implements Reacti
         //WorkQueueProcessor<Message> processor = WorkQueueProcessor.create();
 
         //Create the sink and tie it with the scope-filter
-        FluxSink<Message> sink = processor.sink(FluxSink.OverflowStrategy.LATEST);
-        Tuple2<Predicate<Message>, FluxSink<Message>> sinkTuple = Tuples.of(messageSelector, sink);
+        FluxSink<Message> sink = processor.sink();
 
+        //Create the underlying fix message sink
+        MessageSink messageSink = createSink(messageSelector, sink::next, sink::error);
         //When sink is disposed (cancelled, terminated) we remove it from the sinks
-        sink.onDispose(() -> sinks.remove(sinkTuple));
-        //Add the sink
-        sinks.add(sinkTuple);
+        sink.onDispose(messageSink::dispose);
 
-        //Notify new subscriber if session has been dropped
-        SessionDroppedException sessionDroppedException = loggedOut.get();
-        if (Objects.nonNull(sessionDroppedException)) {
-            sink.error(sessionDroppedException);
-        }
-        return processor.onBackpressureLatest();
+        //Return the flux
+        return processor
+                //If too many fix messages received that cannot be consumed in time, discard the oldest unprocessed messages
+                .onBackpressureLatest();
     }
 
     //--------------------------------------------------

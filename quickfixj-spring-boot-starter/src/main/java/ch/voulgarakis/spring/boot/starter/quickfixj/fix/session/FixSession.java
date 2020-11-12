@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.session;
+package ch.voulgarakis.spring.boot.starter.quickfixj.fix.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionInterface;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector;
@@ -43,7 +43,7 @@ public interface FixSession extends FixSessionInterface {
      * @param onError         the callback that will be invoked when an error is received by quickfixj.
      * @return AutoCloseable of the subscription to the fix messages, that match the filter criteria.
      */
-    AutoCloseable subscribe(Predicate<Message> messageSelector, Consumer<Message> onResponse,
+    Disposable subscribe(Predicate<Message> messageSelector, Consumer<Message> onResponse,
             Consumer<Throwable> onError);
 
     /**
@@ -55,7 +55,7 @@ public interface FixSession extends FixSessionInterface {
      * @param onError    the callback that will be invoked when an error is received by quickfixj.
      * @return AutoCloseable of the subscription to the fix messages received by the session associated with the request message, (based on requestId).
      */
-    default AutoCloseable sendAndSubscribe(Message message, Consumer<Message> onResponse,
+    default Disposable sendAndSubscribe(Message message, Consumer<Message> onResponse,
             Consumer<Throwable> onError) {
         return sendAndSubscribe(message, RefIdSelector::new, onResponse, onError);
     }
@@ -68,7 +68,7 @@ public interface FixSession extends FixSessionInterface {
      * @param refIdSelectorSupplier a RefIdSelector that will associate a request with a response.
      * @return AutoCloseable of the subscription to the fix messages received by the session associated with the request message.
      */
-    AutoCloseable sendAndSubscribe(Message message, Function<Message, RefIdSelector> refIdSelectorSupplier,
+    Disposable sendAndSubscribe(Message message, Function<Message, RefIdSelector> refIdSelectorSupplier,
             Consumer<Message> onResponse, Consumer<Throwable> onError
     );
 }

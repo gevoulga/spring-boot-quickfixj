@@ -34,8 +34,10 @@ import quickfix.*;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnBean(annotation = EnableQuickFixJ.class)
@@ -63,10 +65,25 @@ public class QuickFixJConnectionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Application application(InternalFixSessions<? extends AbstractFixSession> fixSessions,
-            FixConnectionType fixConnectionType, StartupLatch startupLatch, LoggingId loggingId,
-            AuthenticationService authenticationService) {
-        Map<SessionID, ? extends AbstractFixSession> sessions = fixSessions.getFixSessions();
+    public Application application(List<InternalFixSessions<?>> fixSessions, FixConnectionType fixConnectionType,
+            StartupLatch startupLatch, LoggingId loggingId, AuthenticationService authenticationService) {
+
+        //Extract the fix sessions
+        Map<SessionID, AbstractFixSession> sessions = fixSessions.stream()
+                .flatMap(internalFixSessions -> {
+                    Map<SessionID, ?> fixSessions1 = internalFixSessions.getFixSessions();
+                    return fixSessions1.entrySet().stream();
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
+                    Object session = e.getValue();
+                    if (session instanceof AbstractFixSession) {
+                        return (AbstractFixSession) e.getValue();
+                    } else {
+                        throw new QuickFixJConfigurationException(
+                                "Session object not of expected AbstractFixSession type: " + session);
+                    }
+                }));
+        
         return new FixSessionManager(sessions, fixConnectionType, startupLatch, loggingId, authenticationService);
     }
 

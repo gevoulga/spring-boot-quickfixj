@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
+package ch.voulgarakis.spring.boot.starter.quickfixj;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableAutoConfiguration
-@EnableQuickFixJ
-public class QuickFixJAutoConfigurationTestConfig {
+public class EmptyContext {
 }

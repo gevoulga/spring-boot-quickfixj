@@ -17,16 +17,14 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessions;
+import ch.voulgarakis.spring.boot.starter.quickfixj.fix.session.FixSessions;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.GenericApplicationContext;
 import quickfix.SessionSettings;
-
-import java.util.List;
 
 @Configuration
 @ConditionalOnBean(annotation = EnableQuickFixJ.class)
@@ -34,8 +32,7 @@ public class QuickfixJSessionsAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(InternalFixSessions.class)
-    public FixSessions fixSessions(SessionSettings sessionSettings,
-            List<AbstractFixSession> sessions) {
-        return new FixSessions(sessionSettings, sessions);
+    public FixSessions fixSessions(GenericApplicationContext applicationContext, SessionSettings sessionSettings) {
+        return new FixSessions(applicationContext, sessionSettings);
     }
 }

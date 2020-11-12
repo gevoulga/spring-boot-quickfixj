@@ -39,6 +39,12 @@
             <artifactId>quickfixj-messages-all</artifactId>
         </dependency>
 
+        <!-- Metrics -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+
         <!-- Apache dependencies -->
         <dependency>
             <groupId>org.apache.commons</groupId>

@@ -17,9 +17,8 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.AbstractFixSession;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.DefaultFixSession;
+import ch.voulgarakis.spring.boot.starter.quickfixj.fix.session.FixSession;
+import ch.voulgarakis.spring.boot.starter.quickfixj.fix.session.FixSessionImpl;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,19 +63,11 @@ public class QuickfixjApplicationTest {
     public static class TestConfig {
 
         @Bean
-        public AbstractFixSession fixSession() {
-            return new DefaultFixSession() {
+        public FixSession fixSession() {
+            return new FixSessionImpl() {
                 @Override
                 protected void received(Message message) {
                     received.set(true);
-                }
-
-                @Override
-                protected void error(SessionException message) {
-                }
-
-                @Override
-                protected void loggedOn() {
                 }
             };
         }
