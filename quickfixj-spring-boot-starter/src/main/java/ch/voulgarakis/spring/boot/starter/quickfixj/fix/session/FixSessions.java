@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.flux;
+package ch.voulgarakis.spring.boot.starter.quickfixj.fix.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.DynamicFixSessionBeanRegistration;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
@@ -28,24 +28,24 @@ import quickfix.SessionSettings;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-public class ReactiveFixSessions implements InternalFixSessions<ReactiveFixSession> {
+public class FixSessions implements InternalFixSessions<FixSession> {
 
-    private final Map<SessionID, ReactiveFixSession> fixSessions;
+    private final Map<SessionID, FixSession> fixSessions;
     private final Map<String, SessionID> nameToSessionId;
 
-    public ReactiveFixSessions(GenericApplicationContext applicationContext, SessionSettings sessionSettings) {
+    public FixSessions(GenericApplicationContext applicationContext, SessionSettings sessionSettings) {
         BiFunction<String, SessionID, BeanDefinition> fixSessionBeanDefinitionCreator =
                 (sessionName, sessionID) -> BeanDefinitionBuilder
-                        .genericBeanDefinition(NamedReactiveFixSessionImpl.class)
+                        .genericBeanDefinition(NamedFixSessionImpl.class)
                         .addConstructorArgValue(sessionName)
                         .addConstructorArgValue(sessionID)
                         .getBeanDefinition();
 
-        DynamicFixSessionBeanRegistration<ReactiveFixSession> fixSessionDynamicFixSessionBeanRegistration =
+        DynamicFixSessionBeanRegistration<FixSession> fixSessionDynamicFixSessionBeanRegistration =
                 new DynamicFixSessionBeanRegistration<>(applicationContext, sessionSettings,
-                        fixSessionBeanDefinitionCreator, ReactiveFixSession.class);
+                        fixSessionBeanDefinitionCreator, FixSession.class);
 
-        Pair<Map<SessionID, ReactiveFixSession>, Map<String, SessionID>> sessionBeans =
+        Pair<Map<SessionID, FixSession>, Map<String, SessionID>> sessionBeans =
                 fixSessionDynamicFixSessionBeanRegistration.registerSessionBeans();
 
         fixSessions = sessionBeans.getLeft();
@@ -53,7 +53,7 @@ public class ReactiveFixSessions implements InternalFixSessions<ReactiveFixSessi
     }
 
     @Override
-    public Map<SessionID, ReactiveFixSession> getFixSessions() {
+    public Map<SessionID, FixSession> getFixSessions() {
         return fixSessions;
     }
 

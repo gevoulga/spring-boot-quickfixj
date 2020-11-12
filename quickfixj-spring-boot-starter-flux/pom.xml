@@ -21,12 +21,6 @@
             <artifactId>reactor-core</artifactId>
         </dependency>
 
-        <!-- Metrics -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-        </dependency>
-
         <!-- Module dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>

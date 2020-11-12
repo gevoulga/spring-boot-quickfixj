@@ -45,10 +45,10 @@ public interface ReactiveFixSession extends FixSessionInterface {
 
     /**
      * Convenient method that allows to send a message to the fix session and then subscribe to the response(s) received for this message.
-     * The responses are associated with the requests based on the requestId tag in the FIX messages, using the {@link ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector}.
+     * The responses are associated with the requests based on the requestId tag in the FIX messages.
      *
      * @param messageSupplier the message supplier that will be invoked when the sending will be executed.
-     * @return the Flux of fix messages received by the session associated with the request message, using {@link ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector}.
+     * @return the Flux of fix messages received by the session associated with the request message (based on requestId).
      */
     default Flux<Message> sendAndSubscribe(Supplier<Message> messageSupplier) {
         return sendAndSubscribe(messageSupplier, RefIdSelector::new);
@@ -56,7 +56,7 @@ public interface ReactiveFixSession extends FixSessionInterface {
 
     /**
      * Convenient method that allows to send a message to the fix session and then subscribe to the response(s) received for this message.
-     * The responses are associated with the requests based on the requestId tag in the FIX messages.
+     * The responses are associated with the requests based on the requestId tag in the FIX messages, using the {@link ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.RefIdSelector}.
      *
      * @param messageSupplier       the message supplier that will be invoked when the sending will be executed.
      * @param refIdSelectorSupplier a RefIdSelector that will associate a request with a response.

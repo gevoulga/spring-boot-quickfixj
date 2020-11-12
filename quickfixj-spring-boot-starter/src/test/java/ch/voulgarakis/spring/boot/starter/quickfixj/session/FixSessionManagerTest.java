@@ -16,10 +16,13 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.EmptyContext;
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.RejectException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.fix.session.FixSession;
+import ch.voulgarakis.spring.boot.starter.quickfixj.fix.session.FixSessionImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +42,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {EmptyContext.class, FixSessionTest.FixSessionTestContext.class})
+@SpringBootTest(classes = {EmptyContext.class, FixSessionManagerTest.FixSessionTestContext.class})
 @TestPropertySource("classpath:fixSessionTest.properties")
 @DirtiesContext //Stop port already bound issues from other tests
-public class FixSessionTest {
+public class FixSessionManagerTest {
 
     @Autowired
     private FixSessionManager sessionManager;
@@ -54,10 +57,12 @@ public class FixSessionTest {
     @Test
     public void test() throws RejectLogon {
         SessionID sessionId = new SessionID("FIX.4.3", "TEST_CLIENT", "FIX");
+        //At context initialization, we should set the sessionId first, and then get it
+        verify(fixSession).getSessionId();
 
         //Logon
         sessionManager.fromAdmin(new Logon(), sessionId);
-        verify(authenticationService).authenticate(any(SessionID.class),any(Message.class));
+        verify(authenticationService).authenticate(any(SessionID.class), any(Message.class));
         verify(fixSession).loggedOn();
 
         //Heartbeats
@@ -82,7 +87,7 @@ public class FixSessionTest {
 
         //Logon (again)
         sessionManager.fromAdmin(new Logon(), sessionId);
-        verify(authenticationService, times(2)).authenticate(any(SessionID.class),any(Message.class));
+        verify(authenticationService, times(2)).authenticate(any(SessionID.class), any(Message.class));
         verify(fixSession, times(2)).loggedOn();
 
     }
@@ -92,8 +97,8 @@ public class FixSessionTest {
     @EnableQuickFixJ
     static class FixSessionTestContext {
         @Bean
-        public AbstractFixSession fixSession() {
-            return mock(AbstractFixSession.class);
+        public FixSession fixSession() {
+            return mock(FixSessionImpl.class);
         }
 
         @Bean

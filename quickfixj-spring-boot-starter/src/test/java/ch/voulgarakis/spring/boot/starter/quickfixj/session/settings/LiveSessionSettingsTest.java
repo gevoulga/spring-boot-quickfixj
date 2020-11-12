@@ -16,7 +16,7 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session.settings;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.EmptyContext;
+import ch.voulgarakis.spring.boot.starter.quickfixj.EmptyContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

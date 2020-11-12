@@ -16,6 +16,7 @@
 
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.EmptyContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

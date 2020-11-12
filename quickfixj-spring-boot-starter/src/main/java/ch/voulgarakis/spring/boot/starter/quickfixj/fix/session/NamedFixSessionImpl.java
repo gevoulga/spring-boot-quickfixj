@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.session;
+package ch.voulgarakis.spring.boot.starter.quickfixj.fix.session;
 
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.NamedBean;
+import quickfix.SessionID;
 
-@Configuration
-public class EmptyContext {
+public class NamedFixSessionImpl extends FixSessionImpl implements NamedBean {
+    private final String sessionName;
+
+    public NamedFixSessionImpl(String sessionName, SessionID sessionId) {
+        super(sessionId);
+        this.sessionName = sessionName;
+    }
+
+    public NamedFixSessionImpl(String sessionName) {
+        this.sessionName = sessionName;
+    }
+
+    @Override
+    public String getBeanName() {
+        return sessionName;
+    }
 }

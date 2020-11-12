@@ -18,67 +18,30 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
 import quickfix.SessionID;
-import quickfix.SessionSettings;
 
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.extractSessionName;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Contains all the fix session beans
  */
-public class InternalFixSessions<T extends AbstractFixSession> {
-    protected final Map<SessionID, T> fixSessions;
-    protected final Map<String, SessionID> nameToSessionId;
+public interface InternalFixSessions<T> {
 
+    Map<SessionID, T> getFixSessions();
 
-    public InternalFixSessions(SessionSettings sessionSettings, BiFunction<String, SessionID, T> fixSessionProvider) {
+    Map<String, SessionID> getFixSessionIDs();
 
-
-        if (sessionSettings.size() == 0) {
-            fixSessions = Collections.emptyMap();
-            nameToSessionId = Collections.emptyMap();
+    default T retrieveSession(String sessionName) {
+        SessionID sessionId = getFixSessionIDs().get(sessionName);
+        if (Objects.isNull(sessionId)) {
+            throw new QuickFixJConfigurationException(
+                    String.format("No AbstractFixSession receiver for session name [%s] ", sessionName));
         }
-        //One session defined in config
-        else if (sessionSettings.size() == 1) {
-            List<SessionID> sessionIDS = FixSessionUtils.stream(sessionSettings).collect(Collectors.toList());
-            SessionID sessionID = sessionIDS.get(0);
-            String sessionName = extractSessionName(sessionSettings, sessionID);
-            T fixSession = fixSessionProvider.apply(sessionName, sessionID);
-
-            //Set the sessionId in the fixSession
-            fixSession.setSessionId(sessionID);
-            //Store the session in the map
-            fixSessions = Collections.singletonMap(sessionID, fixSession);
-            nameToSessionId = Collections.singletonMap(sessionName, sessionID);
-        }
-        // More than one sessions have been declared
-        else {
-            nameToSessionId = new HashMap<>();
-            fixSessions = FixSessionUtils.stream(sessionSettings)
-                    .map(sessionID -> {
-                        //Get the name of the session
-                        String sessionName = extractSessionName(sessionSettings, sessionID);
-                        nameToSessionId.put(sessionName, sessionID);
-                        //Try to find the session with the given name in the map
-                        T fixSession = fixSessionProvider.apply(sessionName, sessionID);
-                        //Set the sessionId in the fixSession
-                        fixSession.setSessionId(sessionID);
-                        return fixSession;
-                    })
-                    .collect(Collectors.toMap(AbstractFixSession::getSessionId, Function.identity()));
-        }
+        return retrieveSession(sessionId);
     }
 
-    public Map<SessionID, T> getFixSessions() {
-        return fixSessions;
-    }
-
-    protected T retrieveSession(SessionID sessionId) {
-        T fixSession = fixSessions.get(sessionId);
+    default T retrieveSession(SessionID sessionId) {
+        T fixSession = getFixSessions().get(sessionId);
         if (Objects.isNull(fixSession)) {
             throw new QuickFixJConfigurationException(
                     String.format("No AbstractFixSession receiver for session [%s] ", sessionId));

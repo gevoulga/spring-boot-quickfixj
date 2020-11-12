@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.session;
+package ch.voulgarakis.spring.boot.starter.quickfixj;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionInterface;
-import quickfix.Message;
+import org.springframework.context.annotation.Configuration;
 
-public interface FixSession extends FixSessionInterface {
-
-    Message send(Message message);
+@Configuration
+public class EmptyContext {
 }

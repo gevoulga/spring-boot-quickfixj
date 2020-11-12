@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.session;
+package ch.voulgarakis.spring.boot.starter.quickfixj.fix.session;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
-import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeansException;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 import quickfix.ConfigError;
-import quickfix.Message;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,9 +34,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class FixSessionsTest {
 
     private static SessionSettings sessionSettings;
+    private static GenericApplicationContext applicationContext;
+    private static final SessionID sessionID = new SessionID("FIX.4.3", "TEST_CLIENT", "FIX");
 
     @BeforeAll
     static void loadSettings() throws IOException, ConfigError {
+        applicationContext = new GenericXmlApplicationContext();
+        applicationContext.refresh();
         sessionSettings =
                 new FixSessionSettings(null, null, null)
                         .createSessionSettings();
@@ -44,28 +48,16 @@ class FixSessionsTest {
 
     @Test
     void testCreateSession() {
-        DefaultFixSession defaultFixSession = new DefaultFixSession() {
-            @Override
-            protected void received(Message message) {
-            }
+        //The bean in not yet registered
+        assertThrows(BeansException.class, () -> applicationContext.getBean(FixSession.class));
 
-            @Override
-            protected void error(SessionException message) {
-            }
-
-            @Override
-            protected void loggedOn() {
-            }
-        };
-
-        assertThrows(QuickFixJConfigurationException.class, defaultFixSession::getSessionId);
-
-        //Add the Fix Session bean into the registry (fix Sessions)
-        FixSessions fixSessions = new FixSessions(sessionSettings, Collections.singletonList(defaultFixSession));
+        //Create the fix sessions. This should register the session bean in the context dynamically
+        FixSessions fixSessions = new FixSessions(applicationContext, sessionSettings);
+        FixSession fixSession = applicationContext.getBean(FixSession.class);
 
         //Now we should have allocated a SessionID
-        assertEquals(new SessionID("FIX.4.3", "TEST_CLIENT", "FIX"), defaultFixSession.getSessionId());
-        assertEquals(1, fixSessions.fixSessions.size());
+        assertEquals(sessionID, fixSession.getSessionId());
+        assertEquals(1, fixSessions.getFixSessions().size());
     }
 
 }

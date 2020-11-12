@@ -18,14 +18,12 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionMapping;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.fix.session.FixSession;
 import org.springframework.beans.factory.NamedBean;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -62,6 +60,9 @@ public class FixSessionUtils {
                 false);
     }
 
+    //////////////////////////////
+    //// Unique session names ////
+    //////////////////////////////
     public static void ensureUniqueSessionNames(SessionSettings sessionSettings) {
         if (sessionSettings.size() > 1) {
             List<String> sessionNames = stream(sessionSettings)
@@ -72,7 +73,21 @@ public class FixSessionUtils {
         }
     }
 
-    static void ensureUniqueSessionNames(List<String> sessionNames, String errorMessage) {
+    public static void ensureUniqueSessionNames(Collection<? extends AbstractFixSession> sessionBeans) {
+        if (sessionBeans.size() > 1) {
+            List<String> sessionNames = sessionBeans.stream()
+                    .map(FixSessionUtils::extractFixSessionName)
+                    .collect(Collectors.toList());
+            FixSessionUtils.ensureUniqueSessionNames(sessionNames,
+                    "Multiple " + FixSession.class.getSimpleName() + " beans specified for the same session name.");
+        }
+//        //Make sure there's a session mapping to session settings
+//        else if (sessionBeans.isEmpty()) {
+//            throw new QuickFixJConfigurationException("No session found in quickfixj session settings.");
+//        }
+    }
+
+    private static void ensureUniqueSessionNames(List<String> sessionNames, String errorMessage) {
         if (sessionNames.size() > 1) {
             List<String> duplicateSessionNames = sessionNames.stream()
                     .filter(sessionName -> Collections.frequency(sessionNames, sessionName) > 1)
