@@ -155,33 +155,39 @@ public class QuotingService {
     @Autowired
     private FixSession fixSession;
 
-    public Message getQuote(QuoteRequest quoteRequest) {
-
-        //Create logging context for MDC. Then when using a logging framework, you can use %id% in the log messages.
-        try (LoggingContext loggingContext = LoggingUtils.loggingContext("myRequestId")) {
-
-            //We store the first response in this future
-            CompletableFuture<Message> response = new CompletableFuture<>();
-            //We send the quote request, and responses/errors will invoke the callbacks
-            AutoCloseable subscription = fixSession
-                .sendAndSubscribe(quoteRequest,
-                    quote->{
-                        //The first response will set the future
-                        response.complete(quote);
-                    },
-                    error->{
-                        //Or if error/rejection, we set the future with exception
-                        response.completeExceptionally(error);
-                    });
-            
-            //The future now holds the quote(or error)
-            Message quote = response.get();
-            //Close the subscription
-            subscription.close();
-            //And now honestly, isn't reactive better???
-            return quote;
+    public Message getQuote(QuoteRequest quoteRequest) throws ExecutionException, InterruptedException {
+    
+            //Create logging context for MDC. Then when using a logging framework, you can use %id% in the log messages.
+            try (LoggingContext loggingContext = LoggingUtils.loggingContext("myRequestId")) {
+    
+                //We store the first response in this future
+                CompletableFuture<Message> response = new CompletableFuture<>();
+                //We send the quote request, and responses/errors will invoke the callbacks
+                Disposable subscription = fixSession
+                        .sendAndSubscribe(quoteRequest,
+                                quote -> {
+                                    //The first response will set the future
+                                    response.complete(quote);
+                                },
+                                error -> {
+                                    //Or if error/rejection, we set the future with exception
+                                    response.completeExceptionally(error);
+                                });
+    
+                //The future now holds the quote(or error)
+                Message quote = null;
+                try {
+                    quote = response.get();
+                    //And now honestly, isn't reactive better???
+                    return quote;
+                } catch (InterruptedException | ExecutionException e) {
+                    throw e;
+                } finally {
+                    //Close the subscription
+                    subscription.close();
+                }
+            }
         }
-    }
 }
 ```
 
