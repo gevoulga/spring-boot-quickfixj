@@ -17,7 +17,7 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.authentication;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixConnectionType;
-import ch.voulgarakis.spring.boot.starter.quickfixj.utils.FixMessageBuilder;
+import ch.voulgarakis.spring.boot.starter.test.FixMessageBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import quickfix.ConfigError;
@@ -28,7 +28,7 @@ import quickfix.field.Password;
 import quickfix.field.Username;
 import quickfix.fix43.Logon;
 
-import static ch.voulgarakis.spring.boot.starter.quickfixj.utils.FixMessageComparator.FIX_MESSAGE_COMPARATOR;
+import static ch.voulgarakis.spring.boot.starter.test.FixMessageComparator.FIX_MESSAGE_COMPARATOR;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SessionSettingsAuthenticationServiceTest {

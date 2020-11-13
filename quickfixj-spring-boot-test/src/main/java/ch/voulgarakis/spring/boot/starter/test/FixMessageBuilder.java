@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.utils;
+package ch.voulgarakis.spring.boot.starter.test;
 
 import quickfix.*;
 

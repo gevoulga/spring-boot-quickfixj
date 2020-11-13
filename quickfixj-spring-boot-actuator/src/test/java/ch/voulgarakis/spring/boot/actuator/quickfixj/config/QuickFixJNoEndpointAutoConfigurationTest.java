@@ -17,7 +17,6 @@
 package ch.voulgarakis.spring.boot.actuator.quickfixj.config;
 
 import ch.voulgarakis.spring.boot.actuator.quickfixj.endpoint.QuickFixJEndpoint;
-import ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJAutoConfigurationTestConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

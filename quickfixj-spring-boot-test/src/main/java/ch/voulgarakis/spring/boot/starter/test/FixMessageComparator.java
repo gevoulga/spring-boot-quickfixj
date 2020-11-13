@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.starter.quickfixj.utils;
+package ch.voulgarakis.spring.boot.starter.test;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -33,7 +33,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public class FixMessageComparator {
     public static final FixMessageComparator FIX_MESSAGE_COMPARATOR = new FixMessageComparator();
@@ -59,11 +60,11 @@ public class FixMessageComparator {
 
         List<Integer> expectedTags = expected.stream().map(Pair::getLeft).collect(Collectors.toList());
         List<Integer> actualTags = actual.stream().map(Pair::getLeft).collect(Collectors.toList());
-        assertEquals("Tags are not equal.", expectedTags, actualTags);
+        assertEquals(expectedTags, actualTags,"Tags are not equal.");
 
         List<String> expectedValues = expected.stream().map(Pair::getRight).collect(Collectors.toList());
         List<String> actualValues = actual.stream().map(Pair::getRight).collect(Collectors.toList());
-        assertEquals("Values are not equal.", expectedValues, actualValues);
+        assertEquals(expectedValues, actualValues,"Values are not equal.");
     }
 
     public List<Pair<Integer, String>> parse(String fix) {
@@ -80,14 +81,14 @@ public class FixMessageComparator {
     public void assertFixMessagesEquals(FieldMap expectedFix, FieldMap actualFix) {
         List<? extends Pair<Integer, ?>> expectedFixFields = extractFixFields(expectedFix);
         List<? extends Pair<Integer, ?>> actualFixFields = extractFixFields(actualFix);
-        assertEquals("Fields are not equal.", expectedFixFields, actualFixFields);
+        assertEquals(expectedFixFields, actualFixFields,"Fields are not equal.");
 
         List<Group> expectedGroups = extractGroups(expectedFix);
         List<Group> actualGroups = extractGroups(actualFix);
 
         List<Integer> expectedGroupTags = expectedGroups.stream().map(Group::getFieldTag).collect(Collectors.toList());
         List<Integer> actualGroupTags = actualGroups.stream().map(Group::getFieldTag).collect(Collectors.toList());
-        assertEquals("Group tags are not equal.", expectedGroupTags, actualGroupTags);
+        assertEquals(expectedGroupTags, actualGroupTags,"Group tags are not equal.");
 
 
         for (int i = 0; i < expectedGroups.size(); i++) {

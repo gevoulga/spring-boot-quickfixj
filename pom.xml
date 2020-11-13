@@ -48,6 +48,7 @@
         <module>quickfixj-spring-boot-starter</module>
         <module>quickfixj-spring-boot-actuator</module>
         <module>quickfixj-spring-boot-starter-flux</module>
+        <module>quickfixj-spring-boot-test</module>
     </modules>
 
     <properties>
@@ -103,23 +104,23 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!--                    &lt;!&ndash; Tag the release version in git &ndash;&gt;-->
-                    <!--                    <plugin>-->
-                    <!--                        <groupId>org.apache.maven.plugins</groupId>-->
-                    <!--                        <artifactId>maven-scm-plugin</artifactId>-->
-                    <!--                        <executions>-->
-                    <!--                            <execution>-->
-                    <!--                                <id>git-tag</id>-->
-                    <!--                                <phase>deploy</phase>-->
-                    <!--                                <goals>-->
-                    <!--                                    <goal>tag</goal>-->
-                    <!--                                </goals>-->
-                    <!--                            </execution>-->
-                    <!--                        </executions>-->
-                    <!--                        <configuration>-->
-                    <!--                            <tag>REL_v${project.version}</tag>-->
-                    <!--                        </configuration>-->
-                    <!--                    </plugin>-->
+                    <!-- Tag the release version in git -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-scm-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>git-tag</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>tag</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <tag>REL_v${project.version}</tag>
+                        </configuration>
+                    </plugin>
                     <!-- Staging release:
                         mvn clean deploy -Prelease
                         mvn nexus-staging:release -Prelease
@@ -172,15 +173,8 @@
             <!-- Test dependencies -->
             <dependency>
                 <groupId>ch.voulgarakis</groupId>
-                <artifactId>quickfixj-spring-boot-starter</artifactId>
+                <artifactId>quickfixj-spring-boot-test</artifactId>
                 <version>${project.version}</version>
-                <type>test-jar</type>
-            </dependency>
-            <dependency>
-                <groupId>ch.voulgarakis</groupId>
-                <artifactId>quickfixj-spring-boot-starter-flux</artifactId>
-                <version>${project.version}</version>
-                <type>test-jar</type>
             </dependency>
             <dependency>
                 <groupId>org.awaitility</groupId>
