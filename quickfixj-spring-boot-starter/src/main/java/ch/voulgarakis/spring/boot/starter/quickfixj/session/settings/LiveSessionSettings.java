@@ -48,7 +48,7 @@ public class LiveSessionSettings {
 
     public void refresh() throws ConfigError, IOException {
         //Create the new session settings
-        SessionSettings newSessionSettings = fixSessionSettings.createSessionSettings();
+        SessionSettings newSessionSettings = null;
         //Make sure the new session names are unique
         FixSessionUtils.ensureUniqueSessionNames(newSessionSettings);
 

@@ -17,17 +17,21 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EmptyContext;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.settings.SessionSettingsEnhancer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import quickfix.ConfigError;
+import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -47,11 +51,28 @@ public class FixSessionSettingsSpringTest {
 
     @Test
     void createSessionSettings() throws ConfigError, IOException {
-        FixSessionSettings fixSessionSettings =
-                new FixSessionSettings(environment, resourceLoader, "quickfixj-with-placeholders.cfg");
-        SessionSettings actual = fixSessionSettings.createSessionSettings();
+        Resource quickfixjConfig = FixSessionSettings.findQuickfixjConfig("quickfixj-with-placeholders.cfg");
+        SessionSettings sessionSettings = new SessionSettings(quickfixjConfig.getInputStream());
+        SessionSettingsEnhancer enhancer = new SessionSettingsEnhancer(environment, resourceLoader);
+        SessionSettings actual = enhancer.enhanceSettingSettings(sessionSettings);
 
         SessionSettings expected = new SessionSettings("quickfixj.cfg");
-        assertEquals(expected.toString(), actual.toString());
+
+        //We can't do simply assertEquals(expected,actual) because of ordering of properties in session is not certain to be the same
+        assertSessionSettingsEquals(sessionSettings, actual, expected);
+    }
+
+    private void assertSessionSettingsEquals(SessionSettings sessionSettings, SessionSettings actual,
+            SessionSettings expected) throws ConfigError {
+        assertEquals(expected.size(),actual.size());
+
+        //For all the sessions
+        Iterator<SessionID> it = sessionSettings.sectionIterator();
+        while (it.hasNext()) {
+            SessionID sessionID = it.next();
+            assertEquals(sessionSettings.get(sessionID).toMap(), actual.get(sessionID).toMap());
+        }
+        //and for default sessions
+        assertEquals(expected.getDefaultProperties(), actual.getDefaultProperties());
     }
 }

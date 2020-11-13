@@ -17,12 +17,8 @@
 package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
-import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.SessionSettingsAuthenticationService;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixConnectionType;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingId;
-import ch.voulgarakis.spring.boot.starter.quickfixj.session.utils.StartupLatch;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.settings.SessionSettingsEnhancer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
@@ -32,10 +28,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import quickfix.*;
+import quickfix.ConfigError;
+import quickfix.SessionSettings;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 @AutoConfigurationPackage
@@ -46,53 +45,24 @@ public class QuickFixJSessionSettingsAutoConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(QuickFixJSessionSettingsAutoConfiguration.class);
 
     @Bean
-    @ConditionalOnMissingBean(SessionSettings.class)
-    public FixSessionSettings fixSessionSettings(QuickFixJBootProperties properties, Environment environment,
+    @ConditionalOnMissingBean
+    public SessionSettingsEnhancer sessionSettingsEnhancer(Environment environment,
             ResourceLoader resourceLoader) {
-        return new FixSessionSettings(environment, resourceLoader, properties.getConfig());
+        return new SessionSettingsEnhancer(environment, resourceLoader);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public SessionSettings sessionSettings(FixSessionSettings fixSessionSettings) throws IOException, ConfigError {
-        return fixSessionSettings.createSessionSettings();
-    }
+    public SessionSettings sessionSettings(QuickFixJBootProperties properties,
+            SessionSettingsEnhancer sessionSettingsEnhancer) throws ConfigError, IOException {
+        Resource quickfixjConfig = FixSessionSettings.findQuickfixjConfig(properties.getConfig());
 
-    @Bean
-    @ConditionalOnMissingBean
-    public FixConnectionType fixConnectionType(SessionSettings sessionSettings) {
-        return FixConnectionType.of(sessionSettings);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public StartupLatch startupLatch(SessionSettings sessionSettings, FixConnectionType fixConnectionType,
-            QuickFixJBootProperties quickFixJBootProperties) {
-        return new StartupLatch(sessionSettings.size(), fixConnectionType, quickFixJBootProperties.getStartupTimeout());
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public LoggingId loggingId() {
-        return new LoggingId();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public AuthenticationService authenticationService(SessionSettings sessionSettings,
-            FixConnectionType fixConnectionType) {
-        return new SessionSettingsAuthenticationService(sessionSettings, fixConnectionType);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MessageStoreFactory messageStoreFactory() {
-        return new MemoryStoreFactory();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MessageFactory messageFactory() {
-        return new DefaultMessageFactory();
+        //Read the quickfixj file
+        try (InputStream stream = quickfixjConfig.getInputStream()) {
+            //Create the session settings
+            SessionSettings sessionSettings = new SessionSettings(stream);
+            //Enhance the session settings by replacing placeholders and file references
+            return sessionSettingsEnhancer.enhanceSettingSettings(sessionSettings);
+        }
     }
 }

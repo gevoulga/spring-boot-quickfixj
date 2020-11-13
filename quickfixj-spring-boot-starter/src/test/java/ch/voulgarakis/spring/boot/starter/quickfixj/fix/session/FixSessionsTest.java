@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeansException;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.core.io.Resource;
 import quickfix.ConfigError;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -41,9 +42,8 @@ class FixSessionsTest {
     static void loadSettings() throws IOException, ConfigError {
         applicationContext = new GenericXmlApplicationContext();
         applicationContext.refresh();
-        sessionSettings =
-                new FixSessionSettings(null, null, null)
-                        .createSessionSettings();
+        Resource quickfixjConfig = FixSessionSettings.findQuickfixjConfig(null);
+        sessionSettings = new SessionSettings(quickfixjConfig.getInputStream());
     }
 
     @Test
