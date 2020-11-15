@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package ch.voulgarakis.spring.boot.actuator.quickfixj.config;
+package ch.voulgarakis.spring.boot.actuator.quickfixj.health;
 
-import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
+import ch.voulgarakis.spring.boot.actuator.quickfixj.QuickFixJAutoConfigurationTestConfig;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@Configuration
-@EnableAutoConfiguration
-@EnableQuickFixJ
-public class QuickFixJAutoConfigurationTestConfig {
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = QuickFixJAutoConfigurationTestConfig.class)
+class QuickFixJHealthIndicatorTest {
+
 }

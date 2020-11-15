@@ -41,7 +41,7 @@ public class FixSessionSettings {
 
     public static final String SYSTEM_VARIABLE_QUICKFIXJ_CONFIG = "quickfixj.config";
     public static final String QUICKFIXJ_CONFIG = "quickfixj.cfg";
-    private static final String SESSION_NAME = "SessionName";
+    public static final String SESSION_NAME = "SessionName";
 
     public static Resource findQuickfixjConfig(String userDefinedLocation) {
         String[] locations = new String[]{

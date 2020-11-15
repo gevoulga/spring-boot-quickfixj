@@ -56,7 +56,7 @@ public class QuickFixJHealthIndicator implements HealthIndicator {
             } else if (session.isLogonSent() && !session.isLogonReceived()) {
                 return Health.down().withDetail(sessionId, "Waiting for LogOn response").build();
             } else {
-                return Health.down().withDetail(sessionId, "FIX connectino never established").build();
+                return Health.down().withDetail(sessionId, "FIX connection never established").build();
             }
         } else {
             return Health.outOfService().withDetail(sessionId, "Disabled").build();

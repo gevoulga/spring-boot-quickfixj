@@ -19,7 +19,9 @@ package ch.voulgarakis.spring.boot.actuator.quickfixj.config;
 import ch.voulgarakis.spring.boot.actuator.quickfixj.endpoint.QuickFixJEndpoint;
 import ch.voulgarakis.spring.boot.actuator.quickfixj.health.QuickFixJHealthIndicator;
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
+import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionInterface;
 import ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure.QuickFixJConnectionAutoConfiguration;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -40,8 +42,9 @@ public class QuickFixJEndpointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnAvailableEndpoint(endpoint = QuickFixJEndpoint.class)
-    public QuickFixJEndpoint quickfixjEndpoint(SessionSettings sessionSettings) {
-        return new QuickFixJEndpoint(sessionSettings);
+    public QuickFixJEndpoint quickfixjEndpoint(SessionSettings sessionSettings,
+            InternalFixSessions<? extends FixSessionInterface> fixSessions) {
+        return new QuickFixJEndpoint(sessionSettings, fixSessions);
     }
 
     @Bean

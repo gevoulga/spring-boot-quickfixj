@@ -34,8 +34,12 @@ public interface InternalFixSessions<T> {
     default T retrieveSession(String sessionName) {
         SessionID sessionId = getFixSessionIDs().get(sessionName);
         if (Objects.isNull(sessionId)) {
-            throw new QuickFixJConfigurationException(
-                    String.format("No AbstractFixSession receiver for session name [%s] ", sessionName));
+            try {
+                sessionId = new SessionID(sessionName);
+            } catch (IllegalArgumentException e) {
+                throw new QuickFixJConfigurationException(
+                        String.format("No AbstractFixSession receiver for session name [%s] ", sessionName));
+            }
         }
         return retrieveSession(sessionId);
     }

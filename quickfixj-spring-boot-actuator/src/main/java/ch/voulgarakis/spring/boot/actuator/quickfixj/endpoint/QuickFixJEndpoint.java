@@ -16,10 +16,18 @@
 
 package ch.voulgarakis.spring.boot.actuator.quickfixj.endpoint;
 
+import ch.voulgarakis.spring.boot.starter.quickfixj.FixSessionInterface;
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.InternalFixSessions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
+import org.springframework.boot.actuate.endpoint.annotation.Selector;
+import org.springframework.boot.actuate.endpoint.annotation.WriteOperation;
 import quickfix.ConfigError;
+import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
@@ -27,30 +35,33 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static quickfix.SessionID.NOT_SET;
+import static ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings.SESSION_NAME;
 
 
 @Endpoint(id = "quickfixj")
 public class QuickFixJEndpoint {
+    private static final Logger LOG = LoggerFactory.getLogger(QuickFixJEndpoint.class);
 
     private final SessionSettings sessionSettings;
+    private final InternalFixSessions<? extends FixSessionInterface> fixSessions;
 
     @Autowired
-    public QuickFixJEndpoint(SessionSettings sessionSettings) {
+    public QuickFixJEndpoint(SessionSettings sessionSettings,
+            InternalFixSessions<? extends FixSessionInterface> fixSessions) {
         this.sessionSettings = sessionSettings;
+        this.fixSessions = fixSessions;
     }
 
     @ReadOperation
     public Map<String, Properties> readProperties() {
         Map<String, Properties> reports = new HashMap<>();
-        sessionSettings.sectionIterator().forEachRemaining(sessionId -> {
+        fixSessions.getFixSessionIDs().forEach((sessionName, sessionID) -> {
             try {
                 Properties p = new Properties();
                 p.putAll(sessionSettings.getDefaultProperties());
-                p.putAll(sessionSettings.getSessionProperties(sessionId));
-                p.putAll(addSessionIdProperties(sessionId));
-
-                reports.put(sessionId.toString(), p);
+                p.putAll(sessionSettings.getSessionProperties(sessionID));
+                p.putIfAbsent(SESSION_NAME, sessionName);
+                reports.put(sessionID.toString(), p);
             } catch (ConfigError e) {
                 throw new IllegalStateException(e);
             }
@@ -58,32 +69,27 @@ public class QuickFixJEndpoint {
         return reports;
     }
 
-    private Properties addSessionIdProperties(SessionID sessionID) {
-        Properties properties = new Properties();
-        properties.put("BeginString", sessionID.getBeginString());
-        properties.put("SenderCompID", sessionID.getSenderCompID());
-        String senderSubID = sessionID.getSenderSubID();
-        if (!senderSubID.equals(NOT_SET)) {
-            properties.put("SenderSubID", senderSubID);
+    @WriteOperation
+    public void logout(@Selector String sessionName, Action action) {
+        FixSessionInterface fixSession = fixSessions.retrieveSession(sessionName);
+        SessionID sessionId = fixSession.getSessionId();
+        Session session = Session.lookupSession(sessionId);
+        switch (action) {
+            case CONNECT:
+                LOG.info("Logging on session: " + sessionName);
+                session.logon();
+                break;
+            case DISCONNECT:
+                LOG.info("Logging off session: " + sessionName);
+                session.logout("Logout request by QuickFixJ endpoint");
+                break;
+            default:
+                throw new QuickFixJException("Invalid: " + action);
         }
-        String senderLocationID = sessionID.getSenderLocationID();
-        if (!senderLocationID.equals(NOT_SET)) {
-            properties.put("SenderLocationID", senderLocationID);
-        }
-        properties.put("TargetCompID", sessionID.getTargetCompID());
-        String targetSubID = sessionID.getTargetSubID();
-        if (!targetSubID.equals(NOT_SET)) {
-            properties.put("TargetSubID", targetSubID);
-        }
-        String targetLocationID = sessionID.getTargetLocationID();
-        if (!targetLocationID.equals(NOT_SET)) {
-            properties.put("TargetLocationID", targetLocationID);
-        }
-        String sessionQualifier = sessionID.getSessionQualifier();
-        if (!sessionQualifier.equals(NOT_SET)) {
-            properties.put("Qualifier", sessionQualifier);
-        }
+    }
 
-        return properties;
+    public enum Action {
+        CONNECT,
+        DISCONNECT;
     }
 }
