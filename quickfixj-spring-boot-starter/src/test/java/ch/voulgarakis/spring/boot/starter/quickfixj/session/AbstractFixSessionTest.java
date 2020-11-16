@@ -163,11 +163,14 @@ class AbstractFixSessionTest {
 
         //SessionId not already set, should throw exception
         assertThrows(QuickFixJConfigurationException.class, session::getSessionId);
+        assertThrows(QuickFixJConfigurationException.class, session::getSessionName);
 
         SessionID sessionID = new SessionID("FIX.4.3", "TEST_CLIENT", "FIX");
         session.setSessionId(sessionID);
+        session.setSessionName("TEST_CLIENT_SESSION");
 
         //Now that the sessionID is set, getSessionId should be OK
         assertEquals(sessionID, session.getSessionId());
+        assertEquals("TEST_CLIENT_SESSION", session.getSessionName());
     }
 }

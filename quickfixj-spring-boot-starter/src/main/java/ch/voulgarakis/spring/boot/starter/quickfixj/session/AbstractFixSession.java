@@ -42,6 +42,7 @@ public class AbstractFixSession implements FixSessionInterface {
     private final Set<MessageSink> sinks = ConcurrentHashMap.newKeySet();
     private final AtomicReference<SessionDroppedException> loggedOut = new AtomicReference<>();
     private SessionID sessionId;
+    private String sessionName;
 
     //--------------------------------------------------
     //--------------------CONSTRUCTORS------------------
@@ -199,6 +200,23 @@ public class AbstractFixSession implements FixSessionInterface {
             return sessionId;
         } else {
             throw new QuickFixJConfigurationException("SessionId is not set.");
+        }
+    }
+
+    final void setSessionName(String sessionName) {
+        if (Objects.isNull(this.sessionName)) {
+            this.sessionName = sessionName;
+        } else if (!Objects.equals(sessionName, this.sessionName)) {
+            throw new QuickFixJConfigurationException("Not allowed to set SessionName more than once.");
+        }
+    }
+
+    @Override
+    public String getSessionName() {
+        if (Objects.nonNull(sessionId)) {
+            return sessionName;
+        } else {
+            throw new QuickFixJConfigurationException("SessionName is not set.");
         }
     }
 

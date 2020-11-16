@@ -22,4 +22,6 @@ public interface FixSessionInterface {
     boolean isLoggedOn();
 
     SessionID getSessionId();
+
+    String getSessionName();
 }

@@ -70,7 +70,7 @@ public class QuickFixJEndpoint {
     }
 
     @WriteOperation
-    public void logout(@Selector String sessionName, Action action) {
+    public void sessionControl(@Selector String sessionName, Action action) {
         FixSessionInterface fixSession = fixSessions.retrieveSession(sessionName);
         SessionID sessionId = fixSession.getSessionId();
         Session session = Session.lookupSession(sessionId);

@@ -19,14 +19,21 @@ package ch.voulgarakis.spring.boot.actuator.quickfixj.endpoint;
 import ch.voulgarakis.spring.boot.actuator.quickfixj.QuickFixJAutoConfigurationTestConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import quickfix.Session;
+import quickfix.SessionID;
 
 import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = QuickFixJAutoConfigurationTestConfig.class)
@@ -60,5 +67,24 @@ class QuickFixJEndpointTest {
         assertEquals(1, actual.size());
         Properties props = actual.values().iterator().next();
         assertEquals(props, expected);
+    }
+
+    @Test
+    void testSessionControl() {
+        String sessionName = "FIX.4.0:SCompID/SSubID/SLocID->TCompID/TSubID/TLocID:Qualifier";
+        SessionID sessionID = new SessionID(sessionName);
+
+        Session session = mock(Session.class);
+        try (MockedStatic<Session> theMock = Mockito.mockStatic(Session.class)) {
+            theMock.when(() -> Session.lookupSession(sessionID)).thenReturn(session);
+
+            quickFixJEndpoint
+                    .sessionControl(sessionName, QuickFixJEndpoint.Action.DISCONNECT);
+            verify(session).logout(anyString());
+
+            quickFixJEndpoint
+                    .sessionControl(sessionName, QuickFixJEndpoint.Action.CONNECT);
+            verify(session).logon();
+        }
     }
 }

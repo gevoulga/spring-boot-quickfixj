@@ -17,12 +17,32 @@
 package ch.voulgarakis.spring.boot.actuator.quickfixj.health;
 
 import ch.voulgarakis.spring.boot.actuator.quickfixj.QuickFixJAutoConfigurationTestConfig;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import quickfix.SessionID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = QuickFixJAutoConfigurationTestConfig.class)
 class QuickFixJHealthIndicatorTest {
 
+    @Autowired
+    private QuickFixJHealthIndicator quickFixJHealthIndicator;
+
+    //TODO increase test coverage
+    @Test
+    void testHealth() {
+        Health health = quickFixJHealthIndicator.health();
+
+        SessionID sessionID = new SessionID("FIX.4.0:SCompID/SSubID/SLocID->TCompID/TSubID/TLocID:Qualifier");
+        Health expected = Health.down()
+                .withDetail(sessionID.toString(),"FIX connection never established")
+                .build();
+        assertEquals(expected, health);
+    }
 }

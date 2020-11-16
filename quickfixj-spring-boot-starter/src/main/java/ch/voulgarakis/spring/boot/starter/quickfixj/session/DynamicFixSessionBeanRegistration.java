@@ -118,6 +118,7 @@ public class DynamicFixSessionBeanRegistration<T extends FixSessionInterface> {
             //Set the sessionId in the fixSession
             if (fixSession instanceof AbstractFixSession) {
                 ((AbstractFixSession) fixSession).setSessionId(sessionID);
+                ((AbstractFixSession) fixSession).setSessionName(sessionName);
             }
         }
         //Too many session beans defined for the given session settings?
@@ -153,6 +154,7 @@ public class DynamicFixSessionBeanRegistration<T extends FixSessionInterface> {
             //Set the sessionId in the fixSession
             if (fixSession instanceof AbstractFixSession) {
                 ((AbstractFixSession) fixSession).setSessionId(sessionID);
+                ((AbstractFixSession) fixSession).setSessionName(sessionName);
             }
         }
 

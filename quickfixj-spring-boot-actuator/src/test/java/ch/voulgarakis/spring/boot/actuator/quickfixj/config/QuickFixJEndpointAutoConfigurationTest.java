@@ -73,7 +73,7 @@ public class QuickFixJEndpointAutoConfigurationTest {
         assertThat(endpoints).containsKey(ENDPOINT_ID);
 
         ExposableWebEndpoint endpoint = endpoints.get(ENDPOINT_ID);
-        assertEquals(1, endpoint.getOperations().size());
+        assertEquals(2, endpoint.getOperations().size());
 
         WebOperation operation = endpoint.getOperations().iterator().next();
         Object invoker = ReflectionTestUtils.getField(operation, "invoker");
