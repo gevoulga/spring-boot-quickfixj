@@ -10,6 +10,25 @@ QuickFIX/J is an implementation engine of FIX protocol.
 
 [Quickfixj Spring Boot](https://github.com/gevoulga/spring-boot-quickfixj) simplifies the process of spinning-up a FIX engine, by providing easy, spring-boot-style configuration of-the-shelf, with minimal FIX-layer config, enabling developers to focus on business logic.
 
+##Key features
+
+ * **Zero code**:  
+ All the necessary beans get craeted for you, so you can `@Autowire` them.
+ you ONLY need to do is defined your standard `quickfixj.cfg` and... ready!
+ * **Reactive** extension of quickfixj:  
+ If you're a fan of reactive programming (cudos!), there's `quickfixj-spring-boot-starter-flux` for you!:   
+ `Flux<Quote> quotes = fixSession.sendAndSubscribe(quoteRequest);`
+ * **message-level interaction**:  
+ Notice the example above. You don't have to implement `Application` interface.
+ You can operate on the message level, making deducing business logic from code piece of cake!:  
+ * **health-checks and metrics**:  
+ in spring-actuator fashion, you can integrate with any logging tools (grafana, prometheus,etc).
+ * sourcing of session settings from data-source, in spring-data fashion.
+
+## Examples
+
+Usage example can be found **[here](https://github.com/gevoulga/spring-boot-quickfixj-examples)**
+
 ## Artifacts
 
 Quickfixj Spring Boot supports:
@@ -96,6 +115,9 @@ A Service that:
 public class QuotingService {
 
     @Qualifier("SESSION1") //this is not needed if only 1 session is defined in quickfixj.cfg
+    //If session is not named on the quickfixj file (ie SessionName=SESSION1)
+    //the SessionID string can be used instead:
+    //@Qualifier("FIX.4.0:SCompID/SSubID/SLocID->TCompID/TSubID/TLocID:Qualifier")
     @Autowired
     private ReactiveFixSession fixSession;
 
@@ -216,6 +238,21 @@ management.endpoint.quickfixj.enabled=true
 As per typical spring-boot-actuator fashion:
  * The configuration endpoint is available under `/actuator/quickfixj`
  * The health check endpoint is available under `/actuator/health/quickfixj`.
+
+Also, metrics are exposed on the following namespaces:
+ * reactive:
+   * `quickfixj.flux.connection` -> state of the session connection (1->OK,0->DOWN)
+   * `quickfixj.flux.subscribers` -> number of subscribers on the session
+   * `quickfixj.flux.messages.received` -> number of FIX messages received
+   * `quickfixj.flux.messages.sent` -> number of FIX messages sent
+   * `quickfixj.flux.messages.rejections` -> number of rejections on the session
+ * imperative:
+   * `quickfixj.connection` -> state of the session connection (1->OK,0->DOWN)
+   * `quickfixj.subscribers` -> number of subscribers on the session
+   * `quickfixj.messages.received` -> number of FIX messages received
+   * `quickfixj.messages.sent` -> number of FIX messages sent
+   * `quickfixj.messages.rejections` -> number of rejections on the session
+These can be exported/monitored to any perfromance logging framework (grapfana, prometheus) in typical spring-actuator fashion.
 
 ## License and Acknowledgement
 

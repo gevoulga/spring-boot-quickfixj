@@ -19,6 +19,7 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.autoconfigure;
 import ch.voulgarakis.spring.boot.starter.quickfixj.EnableQuickFixJ;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.FixSessionSettings;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.settings.SessionSettingsEnhancer;
+import ch.voulgarakis.spring.boot.starter.quickfixj.session.settings.SessionSettingsSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
@@ -31,10 +32,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import quickfix.ConfigError;
+import quickfix.Dictionary;
+import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Properties;
 
 @Configuration
 @AutoConfigurationPackage
@@ -54,14 +59,32 @@ public class QuickFixJSessionSettingsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public SessionSettings sessionSettings(QuickFixJBootProperties properties,
+            List<SessionSettingsSource> sessionSettingsSources,
             SessionSettingsEnhancer sessionSettingsEnhancer) throws ConfigError, IOException {
         Resource quickfixjConfig = FixSessionSettings.findQuickfixjConfig(properties.getConfig());
 
         //Read the quickfixj file
         try (InputStream stream = quickfixjConfig.getInputStream()) {
+            LOG.info("Loading session settings from {}", quickfixjConfig);
             //Create the session settings
             SessionSettings sessionSettings = new SessionSettings(stream);
+
+            //Resolve additional settings specified in data-sources
+            for (SessionSettingsSource sessionSettingsSource : sessionSettingsSources) {
+                LOG.info("Loading session settings from {}", sessionSettingsSource);
+                //For all sessionIDs specified
+                for (SessionID sessionID : sessionSettingsSource.findAll()) {
+                    //Add them in the session settings
+                    Properties props = sessionSettingsSource.findForSessionId(sessionID);
+                    LOG.debug("Adding SessionID={}, properties={}", sessionID, properties);
+
+                    //Add them in the session settings
+                    sessionSettings.set(sessionID, new Dictionary(null, props));
+                }
+            }
+
             //Enhance the session settings by replacing placeholders and file references
+            LOG.debug("Resolving placeholders in SessionSettings:\n{}", sessionSettings);
             return sessionSettingsEnhancer.enhanceSettingSettings(sessionSettings);
         }
     }

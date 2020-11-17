@@ -35,7 +35,9 @@ public class SessionDroppedException extends SessionException {
     }
 
     private static String extractText(Message message) {
-        return "Logged Out" +
-                safeGetField(message, new Text()).map(s -> format(": Text: %s", s)).orElse(null);
+        StringBuilder response = new StringBuilder("Logged Out");
+        safeGetField(message, new Text()).map(s -> format(": Text: %s", s))
+                .ifPresent(response::append);
+        return response.toString();
     }
 }

@@ -132,4 +132,9 @@ public abstract class ReactiveFixSessionMock implements ReactiveFixSession {
     public SessionID getSessionId() {
         return null;
     }
+
+    @Override
+    public String getSessionName() {
+        return null;
+    }
 }

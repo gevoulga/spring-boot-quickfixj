@@ -19,6 +19,7 @@ package ch.voulgarakis.spring.boot.starter.quickfixj.session;
 
 import ch.voulgarakis.spring.boot.starter.quickfixj.authentication.AuthenticationService;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJConfigurationException;
+import ch.voulgarakis.spring.boot.starter.quickfixj.exception.QuickFixJException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.RejectException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.exception.SessionDroppedException;
 import ch.voulgarakis.spring.boot.starter.quickfixj.session.logging.LoggingContext;
@@ -111,46 +112,47 @@ public class FixSessionManager implements Application {
     public void toAdmin(Message message, SessionID sessionId) {
         try (LoggingContext ignore = loggingId.loggingCtx(sessionId)) {
             if (!isMessageOfType(message, MsgType.HEARTBEAT, MsgType.RESEND_REQUEST)) {
-                Logger logger = logger(sessionId);
                 if (isMessageOfType(message, MsgType.LOGON)) { // || isMessageOfType(message, MsgType.LOGOUT)) {
-                    logger.info("Sending login message: {}", message);
-                    try {
+                    logger(sessionId).info("Sending login message: {}", message);
+                    if (!fixConnectionType.isAcceptor()) {
                         authenticationService.authenticate(sessionId, message);
-                    } catch (RejectLogon rejectLogon) {
-                        logger.error("Failed to authenticate message type: {}", message,
-                                rejectLogon);
                     }
                 } else {
                     LOG.debug("Sending administrative message: {}", message);
                 }
                 // retrieveSession(sessionId).sent(message);
             }
+        } catch (RejectLogon rejectLogon) {
+            logger(sessionId).error("Failed to authenticate message type: {}", message, rejectLogon);
+            throw new QuickFixJException(rejectLogon);
         }
     }
 
     @Override
-    public void fromAdmin(Message message, SessionID sessionId) {
+    public void fromAdmin(Message message, SessionID sessionId) throws RejectLogon {
         try (LoggingContext ignore = loggingId.loggingCtx(sessionId)) {
             //Heartbeat & Resend are omitted
             if (!isMessageOfType(message, MsgType.HEARTBEAT, MsgType.RESEND_REQUEST)) {
                 logger(sessionId).debug("Received administrative message: {}", message);
                 if (isMessageOfType(message, MsgType.LOGON)) {
                     AbstractFixSession fixSession = retrieveSession(sessionId);
-                    try {
+                    if (fixConnectionType.isAcceptor()) {
                         authenticationService.authenticate(sessionId, message);
-                        fixSession.loggedOn();
-                    } catch (RejectLogon rejectLogon) {
-                        logger(sessionId).error("Failed to authenticate message type: {}", message,
-                                rejectLogon);
                     }
+                    fixSession.loggedOn();
                 } else if (isMessageOfType(message, MsgType.LOGOUT)) {
                     retrieveSession(sessionId).error(new SessionDroppedException(message));
                 } else if (RejectException.isReject(message)) {
                     retrieveSession(sessionId).error(new RejectException(message));
                 }
             }
+        } catch (RejectLogon rejectLogon) {
+            logger(sessionId).error("Failed to authenticate message type: {}", message,
+                    rejectLogon);
+            throw rejectLogon;
         } catch (Throwable e) {
             logger(sessionId).error("Failed to process FIX message: {}", message, e);
+            throw e;
         }
     }
 
@@ -173,6 +175,7 @@ public class FixSessionManager implements Application {
             }
         } catch (Throwable e) {
             logger(sessionId).error("Failed to process FIX message: {}", message, e);
+            throw e;
         }
     }
 }
