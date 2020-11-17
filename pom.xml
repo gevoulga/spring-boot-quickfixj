@@ -52,7 +52,7 @@
     </modules>
 
     <properties>
-        <revision>1.0.1</revision>
+        <revision>1.0.2</revision>
         <changelist>-SNAPSHOT</changelist>
 
         <!-- project -->
@@ -106,22 +106,22 @@
                         </executions>
                     </plugin>
                     <!-- Tag the release version in git -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-scm-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>git-tag</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>tag</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <tag>REL_v${project.version}</tag>
-                        </configuration>
-                    </plugin>
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-scm-plugin</artifactId>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <id>git-tag</id>-->
+<!--                                <phase>deploy</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>tag</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                        <configuration>-->
+<!--                            <tag>REL_v${project.version}</tag>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
                     <!-- Staging release:
                         mvn clean deploy -Prelease
                         mvn nexus-staging:release -Prelease
