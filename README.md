@@ -10,11 +10,11 @@ QuickFIX/J is an implementation engine of FIX protocol.
 
 [Quickfixj Spring Boot](https://github.com/gevoulga/spring-boot-quickfixj) simplifies the process of spinning-up a FIX engine, by providing easy, spring-boot-style configuration of-the-shelf, with minimal FIX-layer config, enabling developers to focus on business logic.
 
-##Key features
+## Key features
 
  * **Zero code**:  
  All the necessary beans get craeted for you, so you can `@Autowire` them.
- you ONLY need to do is defined your standard `quickfixj.cfg` and... ready!
+ you ONLY need to define your standard `quickfixj.cfg` and... ready!
  * **Reactive** extension of quickfixj:  
  If you're a fan of reactive programming (cudos!), there's `quickfixj-spring-boot-starter-flux` for you!:   
  `Flux<Quote> quotes = fixSession.sendAndSubscribe(quoteRequest);`
