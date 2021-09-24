@@ -29,7 +29,7 @@ jobs:
     #- name: Build with Maven
     #  run: mvn -B package --file pom.xml
     - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy --batch-mode -s $GITHUB_WORKSPACE/settings.xml
+      run: mvn deploy -Prelease --batch-mode -s $GITHUB_WORKSPACE/settings.xml
       env:
         GITHUB_TOKEN: ${{ github.token }}
     ###
@@ -45,7 +45,7 @@ jobs:
         server-password: MAVEN_PASSWORD
         settings-path: ${{ github.workspace }} # location for the settings.xml file
     - name: Publish to the Maven Central Repository
-      run: mvn deploy --batch-mode -s $GITHUB_WORKSPACE/settings.xml
+      run: mvn deploy -Prelease --batch-mode -s $GITHUB_WORKSPACE/settings.xml
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
