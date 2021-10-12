@@ -73,78 +73,6 @@
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
     </properties>
 
-    <!-- To release:
-    mvn clean deploy -Prelease -Dgpg.passphrase=yourpassphrase
-     -->
-    <profiles>
-        <!-- GPG sign the artifacts to be deployed to maven central -->
-        <profile>
-            <id>release</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <changelist>.RELEASE</changelist>
-                <skipTests>true</skipTests>
-                <deployAtEnd>true</deployAtEnd>
-            </properties>
-            <build>
-                <plugins>
-                    <!-- Sign the artifacts using GPG, so they can be deployed to maven central -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven-gpg-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- Tag the release version in git -->
-<!--                    <plugin>-->
-<!--                        <groupId>org.apache.maven.plugins</groupId>-->
-<!--                        <artifactId>maven-scm-plugin</artifactId>-->
-<!--                        <executions>-->
-<!--                            <execution>-->
-<!--                                <id>git-tag</id>-->
-<!--                                <phase>deploy</phase>-->
-<!--                                <goals>-->
-<!--                                    <goal>tag</goal>-->
-<!--                                </goals>-->
-<!--                            </execution>-->
-<!--                        </executions>-->
-<!--                        <configuration>-->
-<!--                            <tag>REL_v${project.version}</tag>-->
-<!--                        </configuration>-->
-<!--                    </plugin>-->
-                    <!-- Staging release:
-                        mvn clean deploy -Prelease
-                        mvn nexus-staging:release -Prelease
-                        mvn nexus-staging:drop -Prelease
-                        https://oss.sonatype.org/#stagingRepositories
-                    -->
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${nexus-staging-maven-plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <!-- Setting this to true will stage and release at one -->
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <dependencyManagement>
         <dependencies>
             <!-- QuickfixJ -->
@@ -260,14 +188,113 @@
         </plugins>
     </build>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
+    <profiles>
+        <!-- GPG sign the artifacts to be deployed to maven central -->
+        <profile>
+            <id>release</id>
+            <properties>
+                <changelist>.RELEASE</changelist>
+                <skipTests>true</skipTests>
+                <deployAtEnd>true</deployAtEnd>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Sign the artifacts using GPG, so they can be deployed to maven central -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- Tag the release version in git -->
+                    <!--                    <plugin>-->
+                    <!--                        <groupId>org.apache.maven.plugins</groupId>-->
+                    <!--                        <artifactId>maven-scm-plugin</artifactId>-->
+                    <!--                        <executions>-->
+                    <!--                            <execution>-->
+                    <!--                                <id>git-tag</id>-->
+                    <!--                                <phase>deploy</phase>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>tag</goal>-->
+                    <!--                                </goals>-->
+                    <!--                            </execution>-->
+                    <!--                        </executions>-->
+                    <!--                        <configuration>-->
+                    <!--                            <tag>REL_v${project.version}</tag>-->
+                    <!--                        </configuration>-->
+                    <!--                    </plugin>-->
+                </plugins>
+            </build>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub gevoulga Apache Maven Packages</name>
+                    <url>https://maven.pkg.github.com/gevoulga/spring-cloud-stream-binder-jms</url>
+                </repository>
+            </distributionManagement>
+            <!-- To release:
+            mvn clean deploy -Prelease -Dgpg.passphrase=yourpassphrase
+             -->
+        </profile>
+        <profile>
+            <id>github</id>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub gevoulga Apache Maven Packages</name>
+                    <url>https://maven.pkg.github.com/gevoulga/spring-cloud-stream-binder-jms</url>
+                </repository>
+            </distributionManagement>
+            <!-- To release:
+            mvn clean deploy -Prelease,github -Dgpg.passphrase=yourpassphrase
+             -->
+        </profile>
+        <profile>
+            <id>maven-central</id>
+            <build>
+                <plugins>
+                    <!-- Staging release:
+                        mvn clean deploy -Prelease
+                        mvn nexus-staging:release -Prelease
+                        mvn nexus-staging:drop -Prelease
+                        https://oss.sonatype.org/#stagingRepositories
+                    -->
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>${nexus-staging-maven-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <!-- Setting this to true will stage and release at once -->
+                            <!--  Change to true once we're good! -->
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+                </repository>
+            </distributionManagement>
+            <!-- To release:
+            mvn clean deploy -Prelease,maven-central -Dgpg.passphrase=yourpassphrase
+             -->
+        </profile>
+    </profiles>
 </project>
