@@ -56,8 +56,7 @@
         <changelist>-SNAPSHOT</changelist>
 
         <!-- project -->
-        <java.version>1.8</java.version>
-        <maven.javadoc.skip>false</maven.javadoc.skip>
+        <java.version>11</java.version>
 
         <!--//////////////-->
         <!-- Dependencies -->

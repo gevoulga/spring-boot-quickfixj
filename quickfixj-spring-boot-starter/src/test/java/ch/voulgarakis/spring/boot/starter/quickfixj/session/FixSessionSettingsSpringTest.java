@@ -33,7 +33,7 @@ import quickfix.SessionSettings;
 import java.io.IOException;
 import java.util.Iterator;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = EmptyContext.class,
