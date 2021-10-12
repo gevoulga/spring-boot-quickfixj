@@ -248,7 +248,7 @@
                 <repository>
                     <id>github</id>
                     <name>GitHub gevoulga Apache Maven Packages</name>
-                    <url>https://maven.pkg.github.com/gevoulga/spring-cloud-stream-binder-jms</url>
+                    <url>https://maven.pkg.github.com/gevoulga/spring-boot-quickfixj</url>
                 </repository>
             </distributionManagement>
             <!-- To release:
